@@ -1,0 +1,67 @@
+<!-- @dsCard group="Screens" height=884 subtitle="1 · Home — today's flight, Board Now, countdown, streak" -->
+<div class="otm-stage"><div id="phone">
+  <div class="otm-screen" style="gap:18px">
+    <div class="otm-topbar">
+      <span class="otm-label amber">Terminal OTM · Gate 1</span>
+      <button class="otm-icon-btn" aria-label="Stats" title="Stats">&#9636;</button>
+    </div>
+
+    <div style="text-align:center;margin-top:18px">
+      <div class="otm-label" style="margin-bottom:12px">Daily geography departures</div>
+      <div id="logo" style="display:flex;flex-direction:column;align-items:center"></div>
+      <div style="display:flex;align-items:center;gap:10px;justify-content:center;margin-top:14px">
+        <span style="height:1px;width:40px;background:var(--terminal-600)"></span>
+        <span class="otm-label">Travel far. Answer rare.</span>
+        <span style="height:1px;width:40px;background:var(--terminal-600)"></span>
+      </div>
+    </div>
+
+    <div class="otm-board" style="margin-top:6px">
+      <div class="otm-board-head"><span class="otm-label amber">Departures</span><span class="otm-label amber">Status</span></div>
+      <div id="dep"></div>
+      <div class="otm-dots" style="margin:10px 0 8px"></div>
+      <div class="otm-kv"><span class="otm-label">Tuesday, Oct 27</span><span class="otm-label">Departs 12 AM ET</span></div>
+    </div>
+
+    <button class="otm-pass amber" id="board" aria-label="Board now: Flight number 1">
+      <span class="main"><small>Flight #1 · 7 stops · 20s each</small><strong>Board now &#8594;</strong></span>
+      <span class="stub"><small>SEAT</small><b>1A</b><span class="otm-barcode"></span></span>
+    </button>
+
+    <div style="display:flex;gap:12px;align-items:stretch">
+      <div class="otm-panel" style="flex:1;padding:10px 12px">
+        <div class="otm-label" style="margin-bottom:8px">Next flight in</div>
+        <div id="cd"></div>
+      </div>
+      <div style="display:flex;align-items:center;padding-left:18px">
+        <span class="otm-tag-wrap"><button class="otm-tag" aria-label="Streak: 0 days">
+          <span><small>Streak</small><br><b>0 days</b></span>
+        </button></span>
+      </div>
+    </div>
+
+    <div style="margin-top:auto;display:flex;justify-content:center;gap:22px">
+      <button class="otm-ghost" style="border:0;height:32px">How to play</button>
+      <button class="otm-ghost" style="border:0;height:32px">Stats</button>
+    </div>
+  </div>
+</div></div>
+<script>
+(function () {
+  var O = window.OffTheMap, root = document.getElementById('phone');
+  O.phone(root);
+  var logo = document.getElementById('logo');
+  var r1 = document.createElement('div'), r2 = document.createElement('div');
+  logo.appendChild(r1); logo.appendChild(r2);
+  O.board(r1, ['OFF THE'], { cols: 7, size: 'xl' });
+  setTimeout(function () { O.board(r2, ['MAP'], { cols: 3, size: 'xl' }); }, 260);
+  r2.style.marginTop = '4px';
+  var dep = O.board(document.getElementById('dep'), ['FLT 001  BOARDING', 'FLT 002  WED 28 OCT', 'FLT 003  THU 29 OCT'], { cols: 19, size: 'sm' });
+  // dim the scheduled rows
+  setTimeout(function () { dep.rows.slice(1).forEach(function (r) { r.forEach(function (c) { c.classList.add('dim'); }); }); }, 50);
+  var cdEl = document.getElementById('cd');
+  var cd = O.board(cdEl, [O.hms(O.secsToNextFlight())], { cols: 8, size: 'sm' });
+  cdEl.querySelectorAll('.otm-row').forEach(function (r) { r.style.justifyContent = 'flex-start'; });
+  setInterval(function () { cd.set([O.hms(O.secsToNextFlight())], { stagger: 0, direct: true }); }, 1000);
+})();
+</script>

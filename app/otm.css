@@ -1,0 +1,206 @@
+/* Off the Map — component styles ported from design/components/bundle.css (otm- classes). Port, don't redesign. */
+/* Off the Map — shared styles for every preview. Classes are prefixed otm-. */
+
+html, body { margin: 0; background: var(--terminal-950); }
+* { box-sizing: border-box; }
+
+
+/* ---------- type helpers ---------- */
+.otm-label { font: 500 10.5px/14px var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-300); }
+.otm-label.amber { color: var(--amber-700); }
+.otm-data { font: 500 13px/18px var(--font-mono); }
+.otm-title { font: 800 34px/36px var(--font-flap); letter-spacing: 0.02em; text-transform: uppercase; margin: 0; }
+.otm-body { font: 400 15px/22px var(--font-sans); color: var(--ink-300); margin: 0; }
+.otm-amber { color: var(--amber-500); }
+
+/* ---------- top bar ---------- */
+.otm-topbar { display: flex; align-items: center; justify-content: space-between; height: 32px; flex: none; }
+.otm-icon-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--terminal-600); background: var(--terminal-800); color: var(--ink-100); display: grid; place-items: center; font: 500 15px/1 var(--font-mono); cursor: pointer; padding: 0; }
+.otm-icon-btn:focus-visible, .otm-pass:focus-visible, .otm-tag:focus-visible, .otm-ghost:focus-visible { outline: 2px solid var(--amber-500); outline-offset: 3px; }
+
+/* ---------- split-flap ---------- */
+.otm-board {
+  background: var(--terminal-800); border: 1px solid var(--terminal-600);
+  border-radius: var(--radius-card); padding: 10px 10px 12px; box-shadow: var(--shadow-board);
+  position: relative;
+}
+.otm-board::before, .otm-board::after { content: ""; position: absolute; top: 50%; width: 5px; height: 5px; border-radius: 50%; background: var(--terminal-600); }
+.otm-board::before { left: 3px; } .otm-board::after { right: 3px; }
+.otm-board-head { display: flex; justify-content: space-between; padding: 0 2px 8px; }
+.otm-row { display: flex; gap: 2px; justify-content: center; }
+.otm-row + .otm-row { margin-top: 3px; }
+.otm-cell {
+  --cw: 22px; --chh: 34px; --fd: 55ms;
+  position: relative; display: inline-block; flex: none;
+  width: var(--cw); height: var(--chh); perspective: 220px;
+  font-family: var(--font-flap); font-weight: 700; font-size: calc(var(--chh) * 0.8);
+  color: var(--amber-500); text-shadow: 0 0 10px rgba(255,181,46,0.25);
+}
+.otm-cell .h { position: absolute; left: 0; right: 0; height: 50%; overflow: hidden; backface-visibility: hidden; }
+.otm-cell .t { top: 0; border-radius: var(--radius-flap) var(--radius-flap) 0 0; transform-origin: 50% 100%; background: linear-gradient(180deg, #30353c, #272b30); }
+.otm-cell .b { bottom: 0; border-radius: 0 0 var(--radius-flap) var(--radius-flap); transform-origin: 50% 0%; background: linear-gradient(180deg, #22262b, #2a2e34); }
+.otm-cell .h b { position: absolute; left: 0; right: 0; height: var(--chh); line-height: var(--chh); text-align: center; font-weight: inherit; }
+.otm-cell .t b { top: 0; } .otm-cell .b b { bottom: 0; }
+.otm-cell::after { content: ""; position: absolute; left: 0; right: 0; top: calc(50% - 0.5px); height: 1px; background: rgba(0,0,0,0.75); z-index: 6; }
+.otm-cell .f1, .otm-cell .f2 { visibility: hidden; z-index: 4; }
+.otm-cell .f2 { transform: rotateX(90deg); }
+.otm-cell.go .f1 { visibility: visible; animation: otm-f1 var(--fd) ease-in forwards; }
+.otm-cell.go .f2 { animation: otm-f2 var(--fd) ease-out var(--fd) both; }
+@keyframes otm-f1 { from { transform: rotateX(0); filter: brightness(1); } to { transform: rotateX(-90deg); filter: brightness(0.6); } }
+@keyframes otm-f2 { from { transform: rotateX(90deg); visibility: visible; filter: brightness(1.4); } to { transform: rotateX(0); visibility: visible; filter: brightness(1); } }
+.otm-cell.sm { --cw: 15px; --chh: 23px; }
+.otm-cell.xl { --cw: 33px; --chh: 50px; }
+.otm-cell.dim { color: var(--amber-700); text-shadow: none; }
+.otm-cell.red { color: var(--gate-red); text-shadow: 0 0 10px rgba(255,77,61,0.35); }
+
+/* ---------- boarding pass button ---------- */
+.otm-pass {
+  display: flex; width: 100%; height: 88px; padding: 0; border: 0; cursor: pointer; text-align: left;
+  background: var(--paper-100); color: var(--paper-ink); border-radius: var(--radius-pass);
+  box-shadow: var(--shadow-pass); position: relative; font-family: var(--font-sans);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+  -webkit-mask: radial-gradient(circle 10px at calc(100% - 92px) 0, transparent 9.5px, #000 10px) top / 100% 51% no-repeat,
+                radial-gradient(circle 10px at calc(100% - 92px) 100%, transparent 9.5px, #000 10px) bottom / 100% 51% no-repeat;
+          mask: radial-gradient(circle 10px at calc(100% - 92px) 0, transparent 9.5px, #000 10px) top / 100% 51% no-repeat,
+                radial-gradient(circle 10px at calc(100% - 92px) 100%, transparent 9.5px, #000 10px) bottom / 100% 51% no-repeat;
+}
+.otm-pass:hover { transform: translateY(-1px); }
+.otm-pass:active { transform: translateY(1px) scale(0.995); }
+.otm-pass .main { flex: 1; padding: 14px 16px; display: flex; flex-direction: column; justify-content: space-between; }
+.otm-pass .main strong { font: 800 34px/30px var(--font-flap); letter-spacing: 0.02em; text-transform: uppercase; }
+.otm-pass .main small { font: 500 10.5px/1 var(--font-mono); letter-spacing: 0.14em; color: var(--paper-muted); text-transform: uppercase; }
+.otm-pass .stub { width: 92px; flex: none; border-left: 2px dashed var(--paper-200); padding: 12px 12px 10px 14px; display: flex; flex-direction: column; justify-content: space-between; }
+.otm-pass .stub small { font: 500 9.5px/1 var(--font-mono); letter-spacing: 0.12em; color: var(--paper-muted); }
+.otm-pass .stub b { font: 700 22px/1 var(--font-flap); }
+.otm-barcode { height: 18px; background: repeating-linear-gradient(90deg, var(--paper-ink) 0 2px, transparent 2px 3px, var(--paper-ink) 3px 4px, transparent 4px 7px, var(--paper-ink) 7px 10px, transparent 10px 11px); opacity: 0.9; }
+.otm-pass.amber { background: var(--amber-500); }
+.otm-pass.amber .main small, .otm-pass.amber .stub small { color: #4a2f05; }
+.otm-pass.amber .stub { border-left-color: rgba(31,27,22,0.35); }
+.otm-pass.slim { height: 64px; }
+.otm-pass.slim .main strong { font-size: 26px; line-height: 24px; }
+.otm-pass.slim .stub { width: 76px; }
+.otm-pass.slim { -webkit-mask: radial-gradient(circle 9px at calc(100% - 76px) 0, transparent 8.5px, #000 9px) top / 100% 51% no-repeat, radial-gradient(circle 9px at calc(100% - 76px) 100%, transparent 8.5px, #000 9px) bottom / 100% 51% no-repeat; mask: radial-gradient(circle 9px at calc(100% - 76px) 0, transparent 8.5px, #000 9px) top / 100% 51% no-repeat, radial-gradient(circle 9px at calc(100% - 76px) 100%, transparent 8.5px, #000 9px) bottom / 100% 51% no-repeat; }
+.otm-ghost { height: 44px; border-radius: var(--radius-card); border: 1px solid var(--terminal-600); background: transparent; color: var(--ink-100); font: 600 12px/1 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; padding: 0 16px; }
+
+/* ---------- luggage tag ---------- */
+.otm-tag {
+  display: inline-flex; align-items: center; gap: 10px; height: 46px; padding: 0 16px 0 30px; border: 0; cursor: pointer;
+  background: var(--paper-100); color: var(--paper-ink); position: relative;
+  clip-path: polygon(14px 0, 100% 0, 100% 100%, 14px 100%, 0 calc(100% - 14px), 0 14px);
+  border-radius: 0 8px 8px 0; font-family: var(--font-sans);
+}
+.otm-tag::before { content: ""; position: absolute; left: 11px; top: 50%; width: 9px; height: 9px; margin-top: -4.5px; border-radius: 50%; background: var(--terminal-900); box-shadow: 0 0 0 2px var(--paper-200); }
+.otm-tag small { font: 500 9.5px/1 var(--font-mono); letter-spacing: 0.14em; color: var(--paper-muted); text-transform: uppercase; }
+.otm-tag b { font: 800 22px/1 var(--font-flap); }
+.otm-tag.amber { background: var(--amber-500); }
+.otm-tag.amber small { color: #4a2f05; }
+.otm-tag-wrap { position: relative; display: inline-block; }
+.otm-tag-wrap::before { content: ""; position: absolute; left: -20px; top: 22px; width: 26px; height: 2px; background: var(--amber-700); transform: rotate(-12deg); transform-origin: right; border-radius: 2px; }
+
+/* ---------- passport page + stamps ---------- */
+.otm-passport {
+  background:
+    repeating-radial-gradient(circle at 20% 110%, transparent 0 9px, rgba(180,160,120,0.13) 9px 10px),
+    repeating-radial-gradient(circle at 90% -10%, transparent 0 13px, rgba(180,160,120,0.10) 13px 14px),
+    var(--paper-100);
+  color: var(--paper-ink); border-radius: var(--radius-card); box-shadow: var(--shadow-pass);
+  position: relative; overflow: hidden;
+}
+.otm-passport .pp-head { display: flex; justify-content: space-between; padding: 12px 14px 0; font: 500 9.5px/1 var(--font-mono); letter-spacing: 0.16em; color: var(--paper-muted); text-transform: uppercase; }
+
+.otm-stamp {
+  --ink: var(--tier-explorer); --rot: -6deg;
+  display: inline-block; color: var(--ink); border: 3.5px solid currentColor; border-radius: 9px; padding: 4px;
+  transform: rotate(var(--rot)); filter: url(#otm-ink); mix-blend-mode: multiply;
+  font-family: var(--font-flap); text-transform: uppercase; text-align: center; opacity: 0.93;
+}
+.otm-stamp .in { border: 1.5px solid currentColor; border-radius: 6px; padding: 8px 16px 9px; }
+.otm-stamp .s-top { font: 600 10.5px/1 var(--font-mono); letter-spacing: 0.14em; display: flex; justify-content: center; gap: 8px; }
+.otm-stamp .s-tier { font-weight: 800; font-size: 46px; line-height: 44px; letter-spacing: 0.04em; margin-top: 6px; }
+.otm-stamp .s-ans { font-weight: 700; font-size: 22px; line-height: 26px; letter-spacing: 0.06em; border-top: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; margin: 6px 0 7px; padding: 1px 4px; white-space: nowrap; }
+.otm-stamp .s-row { display: flex; justify-content: space-between; gap: 16px; font: 600 12px/1 var(--font-mono); letter-spacing: 0.08em; }
+.otm-stamp.lost .s-ans { text-decoration: line-through; text-decoration-thickness: 2px; }
+.otm-stamp.slam { animation: otm-slam 420ms cubic-bezier(.2,.9,.25,1) both; }
+@keyframes otm-slam {
+  0% { transform: rotate(calc(var(--rot) - 9deg)) scale(2.5); opacity: 0; }
+  55% { transform: rotate(var(--rot)) scale(0.94); opacity: 0.95; }
+  72% { transform: rotate(var(--rot)) scale(1.03); }
+  100% { transform: rotate(var(--rot)) scale(1); opacity: 0.93; }
+}
+.otm-shake { animation: otm-shake 300ms linear 230ms both; }
+@keyframes otm-shake { 0%{transform:translate(0,0)} 20%{transform:translate(-4px,3px)} 40%{transform:translate(4px,-2px)} 60%{transform:translate(-3px,1px)} 80%{transform:translate(2px,-1px)} 100%{transform:translate(0,0)} }
+
+.t-tourist { --ink: var(--tier-tourist); --lit: var(--tier-tourist-lit); }
+.t-backpacker { --ink: var(--tier-backpacker); --lit: var(--tier-backpacker-lit); }
+.t-explorer { --ink: var(--tier-explorer); --lit: var(--tier-explorer-lit); }
+.t-uncharted { --ink: var(--tier-uncharted); --lit: var(--tier-uncharted-lit); }
+.t-redeye { --ink: var(--tier-redeye); --lit: var(--tier-redeye-lit); }
+.t-lost { --ink: var(--tier-lost); --lit: var(--tier-lost-lit); }
+
+.otm-seal {
+  width: 74px; height: 74px; border-radius: 50%; color: var(--ink); border: 2.5px solid currentColor;
+  box-shadow: inset 0 0 0 3px var(--paper-100), inset 0 0 0 4.5px currentColor;
+  display: grid; place-items: center; text-align: center; transform: rotate(var(--rot, -8deg));
+  filter: url(#otm-ink); mix-blend-mode: multiply; font: 800 13px/13px var(--font-flap); letter-spacing: 0.06em; text-transform: uppercase; flex: none;
+}
+.otm-seal small { display: block; font: 600 7.5px/1 var(--font-mono); letter-spacing: 0.12em; margin-top: 3px; }
+.otm-sq { width: 30px; height: 30px; border-radius: 4px; background: var(--ink); flex: none; }
+
+/* ---------- gate timer ---------- */
+.otm-gate { --frac: 1; }
+.otm-gate .g-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.otm-gate .g-time { font: 700 24px/1 var(--font-flap); color: var(--amber-500); font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
+.otm-gate .g-track { position: relative; height: 18px; border-radius: 4px; background: var(--amber-500); box-shadow: 0 0 18px rgba(255,181,46,0.35), inset 0 0 0 1px rgba(0,0,0,0.25); overflow: hidden; }
+.otm-gate .g-door { position: absolute; top: 0; bottom: 0; width: calc((1 - var(--frac)) * 50%); background: repeating-linear-gradient(-45deg, var(--terminal-600) 0 6px, var(--terminal-700) 6px 12px); transition: width 120ms linear; }
+.otm-gate .g-door.l { left: 0; border-right: 2px solid #0a0b0c; } .otm-gate .g-door.r { right: 0; border-left: 2px solid #0a0b0c; }
+.otm-gate .g-door.r { background: repeating-linear-gradient(45deg, var(--terminal-600) 0 6px, var(--terminal-700) 6px 12px); }
+.otm-gate .g-ticks { display: flex; justify-content: space-between; margin-top: 4px; }
+.otm-gate .g-ticks span { width: 1px; height: 4px; background: var(--terminal-600); }
+.otm-gate.final .g-track { background: var(--gate-red); box-shadow: 0 0 22px rgba(255,77,61,0.55); animation: otm-pulse 500ms ease-in-out infinite alternate; }
+.otm-gate.final .g-time, .otm-gate.final .otm-label { color: var(--gate-red); }
+@keyframes otm-pulse { from { filter: brightness(1); } to { filter: brightness(1.35); } }
+
+/* ---------- inputs ---------- */
+.otm-input { position: relative; }
+.otm-input input {
+  width: 100%; height: 56px; border-radius: var(--radius-card); border: 1.5px solid var(--terminal-600); background: var(--terminal-950);
+  color: var(--ink-100); font: 700 24px/1 var(--font-flap); letter-spacing: 0.08em; text-transform: uppercase; padding: 0 92px 0 16px; outline: none;
+}
+.otm-input input:focus { border-color: var(--amber-500); box-shadow: 0 0 0 3px rgba(255,181,46,0.18); }
+.otm-input input::placeholder { color: #6d6a63; letter-spacing: 0.06em; }
+.otm-input .go { position: absolute; right: 6px; top: 6px; height: 44px; padding: 0 14px; border: 0; border-radius: 7px; background: var(--amber-500); color: var(--paper-ink); font: 800 18px/1 var(--font-flap); letter-spacing: 0.06em; cursor: pointer; }
+.otm-suggest { margin-top: 6px; border: 1px solid var(--terminal-600); border-radius: var(--radius-card); background: var(--terminal-800); overflow: hidden; }
+.otm-suggest button { display: flex; justify-content: space-between; width: 100%; padding: 12px 14px; background: none; border: 0; border-top: 1px solid var(--terminal-600); color: var(--ink-100); font: 600 17px/1 var(--font-flap); letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; text-align: left; }
+.otm-suggest button:first-child { border-top: 0; }
+.otm-suggest button.on { background: var(--terminal-700); }
+.otm-suggest button mark { background: none; color: var(--amber-500); }
+.otm-suggest button span { font: 500 10px/1 var(--font-mono); letter-spacing: 0.14em; color: var(--ink-300); align-self: center; }
+
+/* ---------- misc ---------- */
+.otm-panel { background: var(--terminal-800); border: 1px solid var(--terminal-600); border-radius: var(--radius-card); padding: 12px 14px; }
+.otm-kv { display: flex; justify-content: space-between; align-items: baseline; }
+.otm-hr { height: 1px; background: var(--terminal-600); border: 0; margin: 0; }
+.otm-dots { border-top: 2px dotted var(--terminal-600); }
+.otm-pip { display: flex; gap: 4px; }
+.otm-pip span { flex: 1; height: 4px; border-radius: 2px; background: var(--terminal-600); }
+.otm-pip span.done { background: var(--amber-700); } .otm-pip span.now { background: var(--amber-500); box-shadow: 0 0 8px rgba(255,181,46,0.5); }
+.otm-specimen { padding: 24px; display: flex; flex-wrap: wrap; gap: 28px; align-items: center; justify-content: center; font-family: var(--font-sans); color: var(--ink-100); }
+.otm-specimen.paper { background: var(--paper-100); border-radius: var(--radius-card); margin: 16px; }
+.otm-cap { font: 500 10px/1 var(--font-mono); letter-spacing: 0.14em; color: var(--ink-300); text-transform: uppercase; text-align: center; margin-top: 10px; }
+.otm-replay { position: absolute; right: 14px; top: 10px; }
+@media (prefers-reduced-motion: reduce) {
+  .otm-cell.go .f1, .otm-cell.go .f2, .otm-stamp.slam, .otm-shake, .otm-gate.final .g-track { animation-duration: 1ms !important; animation-delay: 0ms !important; }
+}
+
+/* ---------- Red-Eye badge (not a tier: no km) ---------- */
+.otm-redeye {
+  --rot: 12deg; width: 84px; height: 84px; border-radius: 50%; color: var(--tier-redeye);
+  border: 3px solid currentColor; box-shadow: inset 0 0 0 3px var(--paper-100), inset 0 0 0 5px currentColor;
+  display: grid; place-items: center; align-content: center; text-align: center; transform: rotate(var(--rot));
+  filter: url(#otm-ink); mix-blend-mode: multiply; font-family: var(--font-flap); text-transform: uppercase; opacity: 0.93;
+}
+.otm-redeye b { display: block; font-weight: 800; font-size: 17px; line-height: 16px; letter-spacing: 0.04em; }
+.otm-redeye small { display: block; font: 600 8px/1 var(--font-mono); letter-spacing: 0.12em; margin-top: 3px; }
+.otm-redeye.slam { animation: otm-slam 380ms cubic-bezier(.2,.9,.25,1) both; }
+.otm-redeye-pill { display: inline-flex; align-items: center; gap: 4px; height: 16px; padding: 0 5px; border-radius: 3px; border: 1px solid var(--tier-redeye-lit); color: var(--tier-redeye-lit); font: 600 8.5px/1 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+.otm-redeye-dot { position: absolute; right: -4px; top: -4px; width: 13px; height: 13px; border-radius: 50%; background: var(--tier-redeye); box-shadow: 0 0 0 2px var(--paper-100); }

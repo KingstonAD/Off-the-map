@@ -1,0 +1,55 @@
+<!-- @dsCard group="Screens" height=884 subtitle="7 · Stats — the logbook (sample data from a few weeks in)" -->
+<div class="otm-stage"><div id="phone">
+  <div class="otm-screen" style="gap:14px">
+    <div class="otm-topbar">
+      <button class="otm-icon-btn" aria-label="Back">&#8592;</button>
+      <span class="otm-label amber">Pilot logbook</span>
+      <span style="width:32px"></span>
+    </div>
+    <h1 class="otm-title">Logbook</h1>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="otm-panel"><div class="otm-label">Streak</div><div id="streak" style="margin-top:8px"></div><div class="otm-label" style="margin-top:6px;letter-spacing:.08em;text-transform:none">Best: 19 days</div></div>
+      <div class="otm-panel"><div class="otm-label">Longest trip</div><div style="font:800 32px/36px var(--font-flap);color:var(--amber-500);margin-top:6px">31,480<span style="font-size:16px"> KM</span></div><div class="otm-label" style="margin-top:4px;letter-spacing:.08em;text-transform:none">Flight #14</div></div>
+      <div class="otm-panel"><div class="otm-label">Circumnavigations</div><div style="display:flex;align-items:center;gap:8px;margin-top:6px"><span style="font:800 32px/36px var(--font-flap)">1</span><span style="width:22px;height:22px;border-radius:50%;border:2px solid var(--amber-500);box-shadow:0 0 10px rgba(255,181,46,.4)"></span></div><div class="otm-label" style="margin-top:4px;letter-spacing:.08em;text-transform:none">All 7 Uncharted · #9</div></div>
+      <div class="otm-panel"><div class="otm-label">Flights flown</div><div style="font:800 32px/36px var(--font-flap);margin-top:6px">23</div><div class="otm-label" style="margin-top:4px;letter-spacing:.08em;text-transform:none">Avg 17,210 km</div></div>
+    </div>
+
+    <div class="otm-panel">
+      <div class="otm-kv" style="margin-bottom:10px"><span class="otm-label">Last 14 flights</span><span class="otm-label">km</span></div>
+      <div id="bars" style="position:relative;height:96px;display:flex;align-items:flex-end;gap:5px;border-bottom:1px solid var(--terminal-600)"></div>
+      <div class="otm-kv" style="margin-top:6px"><span class="otm-label">#10</span><span class="otm-label">#23</span></div>
+    </div>
+
+    <div class="otm-panel">
+      <div class="otm-kv" style="margin-bottom:10px"><span class="otm-label">Tier history</span><span class="otm-label">161 stops</span></div>
+      <div id="stack" style="display:flex;height:16px;border-radius:3px;overflow:hidden;gap:2px" role="img"></div>
+      <div id="legend" style="display:grid;grid-template-columns:1fr;gap:7px;margin-top:12px"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:9px;border-top:1px dashed var(--terminal-600)"><span class="otm-redeye-pill">&#9200; Red-Eye</span><span style="flex:1;font:400 12px/1 var(--font-sans);color:var(--ink-300)">Badges · last-3-second saves</span><span class="otm-data">9</span></div>
+    </div>
+  </div>
+</div></div>
+<script>
+(function () {
+  var O = window.OffTheMap; O.phone(document.getElementById('phone'));
+  var sb = O.board(document.getElementById('streak'), ['12 DAYS'], { cols: 7, size: 'sm' });
+  document.querySelector('#streak .otm-row').style.justifyContent = 'flex-start';
+  var km = [14220, 19870, 9540, 22410, 31480, 17760, 12090, 24650, 18300, 8120, 21940, 16480, 27030, 16601];
+  var bars = document.getElementById('bars');
+  bars.innerHTML = '<div style="position:absolute;left:0;right:0;top:0;border-top:1px dashed var(--amber-700)"></div><span class="otm-label amber" style="position:absolute;right:0;top:-14px;font-size:8.5px">40,075</span>' +
+    km.map(function (k, i) {
+      var last = i === km.length - 1;
+      return '<span title="' + O.fmt(k) + ' km" style="flex:1;height:' + (k / 40075 * 100).toFixed(1) + '%;border-radius:2px 2px 0 0;background:' + (last ? 'var(--amber-500)' : 'var(--amber-700)') + ';' + (last ? 'box-shadow:0 0 10px rgba(255,181,46,.45)' : '') + '"></span>';
+    }).join('');
+  var hist = [['tourist', 54], ['backpacker', 45], ['explorer', 36], ['uncharted', 12], ['lost', 14]];
+  var total = hist.reduce(function (a, h) { return a + h[1]; }, 0);
+  var stack = document.getElementById('stack');
+  stack.setAttribute('aria-label', hist.map(function (h) { return O.TIERS[h[0]].name + ' ' + h[1]; }).join(', '));
+  stack.innerHTML = hist.map(function (h) { return '<span class="t-' + h[0] + '" style="flex:' + h[1] + ';background:var(--lit)"></span>'; }).join('');
+  document.getElementById('legend').innerHTML = hist.map(function (h) {
+    return '<div class="t-' + h[0] + '" style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:2px;background:var(--lit)"></span>' +
+      '<span style="flex:1;font:700 15px/1 var(--font-flap);letter-spacing:.05em;text-transform:uppercase">' + O.TIERS[h[0]].name + '</span>' +
+      '<span class="otm-data" style="color:var(--ink-300)">' + h[1] + '<span style="opacity:.7"> · ' + Math.round(h[1] / total * 100) + '%</span></span></div>';
+  }).join('');
+})();
+</script>

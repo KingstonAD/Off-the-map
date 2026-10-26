@@ -1,0 +1,67 @@
+<!-- @dsCard group="Screens" height=884 subtitle="6 · Share card — boarding-pass card, 7 stamp squares, spoiler-free text" -->
+<div class="otm-stage"><div id="phone">
+  <div class="otm-screen" style="gap:14px">
+    <div class="otm-topbar">
+      <button class="otm-icon-btn" aria-label="Close">&#10005;</button>
+      <span class="otm-label amber">Share your flight</span>
+      <span style="width:32px"></span>
+    </div>
+
+    <div id="card" style="background:var(--paper-100);color:var(--paper-ink);border-radius:var(--radius-pass);box-shadow:var(--shadow-pass);position:relative;overflow:hidden;margin:4px 6px 0">
+      <div style="background:var(--terminal-900);color:var(--amber-500);padding:12px 16px 10px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font:800 24px/1 var(--font-flap);letter-spacing:.08em">OFF THE MAP</span>
+        <span style="font:500 9.5px/1 var(--font-mono);letter-spacing:.16em;color:var(--ink-300)">BOARDING PASS</span>
+      </div>
+      <div style="padding:14px 16px 6px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+        <div><div style="font:500 9px/1 var(--font-mono);letter-spacing:.14em;color:var(--paper-muted)">FLIGHT</div><div style="font:700 22px/26px var(--font-flap)">#1</div></div>
+        <div><div style="font:500 9px/1 var(--font-mono);letter-spacing:.14em;color:var(--paper-muted)">DATE</div><div style="font:700 22px/26px var(--font-flap)">27 OCT</div></div>
+        <div style="text-align:right"><div style="font:500 9px/1 var(--font-mono);letter-spacing:.14em;color:var(--paper-muted)">STOPS</div><div style="font:700 22px/26px var(--font-flap)">7</div></div>
+      </div>
+      <div style="padding:2px 16px 0">
+        <div style="font:500 9px/1 var(--font-mono);letter-spacing:.14em;color:var(--paper-muted)">DISTANCE FLOWN</div>
+        <div style="font:800 64px/62px var(--font-flap);letter-spacing:.01em">16,601<span style="font-size:30px;margin-left:6px">KM</span></div>
+        <div style="font:500 10.5px/1 var(--font-mono);letter-spacing:.12em;color:var(--paper-muted);margin-top:2px">ACROSS AN OCEAN · 1 RED-EYE</div>
+      </div>
+      <div style="position:relative;margin:14px 16px 0;height:8px">
+        <div style="position:absolute;inset:3px 0 auto;border-top:2px dotted var(--paper-muted);opacity:.6"></div>
+        <div style="position:absolute;left:0;top:0;width:8px;height:8px;border-radius:50%;background:var(--paper-ink)"></div>
+        <div style="position:absolute;left:41.4%;top:-5px;font-size:14px;line-height:1;transform:translateX(-50%)">&#9992;</div>
+        <div style="position:absolute;right:0;top:0;width:8px;height:8px;border-radius:50%;border:2px solid var(--paper-ink)"></div>
+      </div>
+      <div class="otm-kv" style="padding:4px 16px 0"><span style="font:500 8.5px/1 var(--font-mono);letter-spacing:.12em;color:var(--paper-muted)">0 KM</span><span style="font:500 8.5px/1 var(--font-mono);letter-spacing:.12em;color:var(--paper-muted)">40,075 KM</span></div>
+      <div id="sq" style="display:flex;gap:6px;justify-content:center;padding:16px 16px 18px"></div>
+      <div style="position:relative;border-top:2px dashed var(--paper-200);margin:0 0;padding:12px 16px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <span style="position:absolute;left:-10px;top:-11px;width:20px;height:20px;border-radius:50%;background:var(--terminal-900)"></span>
+        <span style="position:absolute;right:-10px;top:-11px;width:20px;height:20px;border-radius:50%;background:var(--terminal-900)"></span>
+        <div><div style="font:700 19px/22px var(--font-flap);letter-spacing:.03em">Bon voyage. No spoilers.</div><div style="font:500 9px/1 var(--font-mono);letter-spacing:.14em;color:var(--paper-muted);margin-top:4px">NEW FLIGHT DAILY · 12 AM ET</div></div>
+        <span class="otm-barcode" style="width:64px;height:30px;flex:none"></span>
+      </div>
+    </div>
+
+    <div class="otm-panel" style="padding:10px 12px">
+      <div class="otm-kv" style="margin-bottom:6px"><span class="otm-label">Text version</span><button class="otm-ghost" id="copy" style="height:24px;padding:0 8px;font-size:10px">Copy</button></div>
+      <pre id="txt" style="margin:0;font:500 13px/19px var(--font-mono);color:var(--ink-100);white-space:pre-wrap"></pre>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:auto">
+      <button class="otm-ghost" style="flex:1">Save image</button>
+      <button class="otm-pass amber slim" style="flex:1.4;height:44px;border-radius:10px;-webkit-mask:none;mask:none" aria-label="Share">
+        <span class="main" style="padding:0 14px;justify-content:center"><strong style="font-size:22px">Share &#8599;</strong></span>
+      </button>
+    </div>
+  </div>
+</div></div>
+<script>
+(function () {
+  var O = window.OffTheMap; O.phone(document.getElementById('phone'));
+  document.getElementById('sq').innerHTML = O.SAMPLE.map(function (s, i) {
+    return '<span class="otm-sq ' + O.TIERS[s.tier].cls + '" title="Stop ' + (i + 1) + ': ' + O.TIERS[s.tier].name + (s.redeye ? ' + Red-Eye badge' : '') + '" style="position:relative;width:36px;height:36px;' + (s.tier === 'lost' ? 'background:repeating-linear-gradient(45deg,var(--ink) 0 4px,#4a4239 4px 8px)' : '') + '">' + (s.redeye ? '<span class="otm-redeye-dot"></span>' : '') + '</span>';
+  }).join('');
+  var total = O.SAMPLE.reduce(function (a, s) { return a + s.km; }, 0), eyes = O.SAMPLE.filter(function (s) { return s.redeye; }).length;
+  var text = 'Off the Map #1 ✈️ ' + O.fmt(total) + ' km\n' + O.SAMPLE.map(function (s) { return O.TIERS[s.tier].emoji; }).join('') + (eyes ? '\n' + O.REDEYE.emoji + ' Red-Eye ×' + eyes : '') + '\nBon voyage. No spoilers.';
+  document.getElementById('txt').textContent = text;
+  document.getElementById('copy').addEventListener('click', function () {
+    var b = this; try { navigator.clipboard.writeText(text).then(function () { b.textContent = 'Copied'; }, function () { b.textContent = 'Copy'; }); } catch (e) {}
+  });
+})();
+</script>

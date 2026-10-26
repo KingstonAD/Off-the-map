@@ -1,0 +1,103 @@
+<!-- @dsCard group="Screens" height=884 subtitle="3 · Gameplay — split-flap prompt, gate timer, autocomplete. Type or tap the keys." -->
+<div class="otm-stage"><div id="phone">
+  <div class="otm-screen" style="gap:12px;padding-bottom:16px">
+    <div class="otm-topbar">
+      <button class="otm-icon-btn" aria-label="Leave flight">&#10005;</button>
+      <div style="text-align:center"><div class="otm-label">Stop</div><div style="font:700 20px/1 var(--font-flap);letter-spacing:.06em">3<span style="color:var(--ink-300)">/7</span></div></div>
+      <div style="text-align:right"><div class="otm-label">Travelled</div><div style="font:700 20px/1 var(--font-flap);color:var(--amber-500);letter-spacing:.04em" id="km">2,742 KM</div></div>
+    </div>
+    <div class="otm-pip" aria-hidden="true"><span class="done"></span><span class="done"></span><span class="now"></span><span></span><span></span><span></span><span></span></div>
+
+    <div class="otm-board">
+      <div class="otm-board-head"><span class="otm-label amber">Destination</span><span class="otm-label amber">Countries</span></div>
+      <div id="prompt"></div>
+    </div>
+
+    <div class="otm-gate" id="gate">
+      <div class="g-head"><span class="otm-label">Gate closing</span><span class="g-time">0:20</span></div>
+      <div class="g-track" role="timer" aria-label="Time left"><div class="g-door l"></div><div class="g-door r"></div></div>
+    </div>
+
+    <form class="otm-input" id="form" autocomplete="off">
+      <input id="ans" placeholder="Type your answer" aria-label="Your answer" spellcheck="false">
+      <button class="go" type="submit">STAMP</button>
+    </form>
+    <div class="otm-suggest" id="sug" role="listbox" aria-label="Suggestions" style="min-height:0"></div>
+
+    <div id="kb" style="margin:auto -10px 0;padding:8px 4px 4px;background:#08090a;border-radius:10px;border:1px solid var(--terminal-700)"></div>
+  </div>
+</div></div>
+<script>
+(function () {
+  var O = window.OffTheMap; O.phone(document.getElementById('phone'));
+  var COUNTRIES = 'Afghanistan,Albania,Algeria,Andorra,Angola,Antigua and Barbuda,Argentina,Armenia,Australia,Austria,Azerbaijan,Bahamas,Bahrain,Bangladesh,Barbados,Belarus,Belgium,Belize,Benin,Bhutan,Bolivia,Bosnia and Herzegovina,Botswana,Brazil,Brunei,Bulgaria,Burkina Faso,Burundi,Cabo Verde,Cambodia,Cameroon,Canada,Central African Republic,Chad,Chile,China,Colombia,Comoros,Congo,Costa Rica,Croatia,Cuba,Cyprus,Czechia,Denmark,Djibouti,Dominica,Dominican Republic,DR Congo,Ecuador,Egypt,El Salvador,Equatorial Guinea,Eritrea,Estonia,Eswatini,Ethiopia,Fiji,Finland,France,Gabon,Gambia,Georgia,Germany,Ghana,Greece,Grenada,Guatemala,Guinea,Guinea-Bissau,Guyana,Haiti,Honduras,Hungary,Iceland,India,Indonesia,Iran,Iraq,Ireland,Israel,Italy,Ivory Coast,Jamaica,Japan,Jordan,Kazakhstan,Kenya,Kiribati,Kosovo,Kuwait,Kyrgyzstan,Laos,Latvia,Lebanon,Lesotho,Liberia,Libya,Liechtenstein,Lithuania,Luxembourg,Madagascar,Malawi,Malaysia,Maldives,Mali,Malta,Marshall Islands,Mauritania,Mauritius,Mexico,Micronesia,Moldova,Monaco,Mongolia,Montenegro,Morocco,Mozambique,Myanmar,Namibia,Nauru,Nepal,Netherlands,New Zealand,Nicaragua,Niger,Nigeria,North Korea,North Macedonia,Norway,Oman,Pakistan,Palau,Palestine,Panama,Papua New Guinea,Paraguay,Peru,Philippines,Poland,Portugal,Qatar,Romania,Russia,Rwanda,Saint Lucia,Samoa,San Marino,Saudi Arabia,Senegal,Serbia,Seychelles,Sierra Leone,Singapore,Slovakia,Slovenia,Solomon Islands,Somalia,South Africa,South Korea,South Sudan,Spain,Sri Lanka,Sudan,Suriname,Sweden,Switzerland,Syria,Taiwan,Tajikistan,Tanzania,Thailand,Timor-Leste,Togo,Tonga,Trinidad and Tobago,Tunisia,Turkey,Turkmenistan,Tuvalu,Uganda,Ukraine,United Arab Emirates,United Kingdom,United States,Uruguay,Uzbekistan,Vanuatu,Vatican City,Venezuela,Vietnam,Yemen,Zambia,Zimbabwe'.split(',');
+
+  function wrap(text, cols) {
+    var words = text.toUpperCase().split(' '), lines = [], cur = '';
+    words.forEach(function (w) { if ((cur + ' ' + w).trim().length > cols) { lines.push(cur); cur = w; } else cur = (cur + ' ' + w).trim(); });
+    lines.push(cur); while (lines.length < 3) lines.push(''); return lines.slice(0, 3);
+  }
+  var PROMPT = wrap('Name a country bordering China', 14);
+  var board = O.board(document.getElementById('prompt'), ['', '', ''], { cols: 14, instant: true });
+  setTimeout(function () { board.set(PROMPT); }, 300);
+
+  var input = document.getElementById('ans'), sug = document.getElementById('sug'), touched = false, sel = 0, matches = [];
+  function render() {
+    var q = input.value.trim().toLowerCase();
+    matches = q ? COUNTRIES.filter(function (c) { return c.toLowerCase().indexOf(q) === 0; }).slice(0, 3) : [];
+    if (sel >= matches.length) sel = 0;
+    sug.style.display = matches.length ? '' : 'none';
+    sug.innerHTML = matches.map(function (m, i) {
+      return '<button type="button" role="option" aria-selected="' + (i === sel) + '" class="' + (i === sel ? 'on' : '') + '" data-v="' + m + '"><span style="font:inherit;color:inherit;letter-spacing:inherit"><mark>' + m.slice(0, q.length) + '</mark>' + m.slice(q.length) + '</span>' + (i === sel ? '<span>Return ↵</span>' : '') + '</button>';
+    }).join('');
+  }
+  sug.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { input.value = b.dataset.v; submit(); } });
+  input.addEventListener('input', function () { touched = true; render(); });
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowDown') { sel = Math.min(sel + 1, matches.length - 1); render(); e.preventDefault(); }
+    if (e.key === 'ArrowUp') { sel = Math.max(sel - 1, 0); render(); e.preventDefault(); }
+    if (e.key === 'Tab' && matches[sel]) { input.value = matches[sel]; render(); e.preventDefault(); }
+  });
+  var flash = null;
+  function submit() {
+    var v = matches[sel] || input.value; if (!v) return;
+    input.value = v.toUpperCase(); sug.style.display = 'none';
+    var g = document.getElementById('gate'); g.querySelector('.otm-label').textContent = 'Stamped · see reveal';
+    timer.stop(); clearTimeout(flash);
+    flash = setTimeout(restart, 2600);
+  }
+  document.getElementById('form').addEventListener('submit', function (e) { e.preventDefault(); submit(); });
+
+  // keyboard
+  var rows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'], kb = document.getElementById('kb');
+  kb.innerHTML = rows.map(function (r, i) {
+    return '<div style="display:flex;justify-content:center;gap:5px;margin:0 0 8px">' + (i === 2 ? '<button data-k="SP" style="flex:0 0 46px">space</button>' : '') + r.split('').map(function (k) { return '<button data-k="' + k + '">' + k + '</button>'; }).join('') + (i === 2 ? '<button data-k="BK" style="flex:0 0 46px" aria-label="Delete">⌫</button>' : '') + '</div>';
+  }).join('');
+  kb.querySelectorAll('button').forEach(function (b) {
+    b.style.cssText += ';flex:0 0 31px;height:40px;border:0;border-radius:6px;background:var(--terminal-700);color:var(--ink-100);font:600 15px/1 var(--font-sans);cursor:pointer;padding:0;box-shadow:0 1px 0 #000';
+  });
+  kb.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return; touched = true;
+    var k = b.dataset.k; input.value = k === 'BK' ? input.value.slice(0, -1) : input.value + (k === 'SP' ? ' ' : k);
+    render();
+  });
+
+  // demo autotype if untouched
+  function demo() {
+    if (touched) return;
+    var word = 'KYR', i = 0;
+    (function t() { if (touched) return; input.value = word.slice(0, ++i); render(); if (i < word.length) setTimeout(t, 260); })();
+  }
+  var demoT;
+  function restart() {
+    input.value = ''; render(); touched = false;
+    document.querySelector('#gate .otm-label').textContent = 'Gate closing';
+    board.set(['', '', ''], { stagger: 0, direct: true }).then(function () { board.set(PROMPT); });
+    timer = O.gate(document.getElementById('gate'), { seconds: 20, onEnd: function () { document.querySelector('#gate .otm-label').textContent = 'Gate closed · Lost Luggage'; flash = setTimeout(restart, 2200); } });
+    clearTimeout(demoT); demoT = setTimeout(demo, 3800);
+  }
+  var timer = O.gate(document.getElementById('gate'), { seconds: 20, onEnd: function () { document.querySelector('#gate .otm-label').textContent = 'Gate closed · Lost Luggage'; flash = setTimeout(restart, 2200); } });
+  demoT = setTimeout(demo, 3800);
+  render();
+})();
+</script>

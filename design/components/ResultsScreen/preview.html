@@ -1,0 +1,122 @@
+<!-- @dsCard group="Screens" height=884 subtitle="5 · Results — plane flies the route while the km ticks up. Tap the globe to replay." -->
+<div class="otm-stage"><div id="phone">
+  <div class="otm-screen" style="gap:10px">
+    <div class="otm-topbar">
+      <button class="otm-icon-btn" aria-label="Home">&#8592;</button>
+      <span class="otm-label amber">Flight #1 · Landed</span>
+      <button class="otm-icon-btn" aria-label="Stats">&#9636;</button>
+    </div>
+
+    <div style="position:relative;height:212px;display:grid;place-items:center;cursor:pointer" id="globeWrap" role="button" tabindex="0" aria-label="Replay route">
+      <svg id="globe" viewBox="-120 -112 240 224" width="240" height="224" aria-hidden="true">
+        <defs><radialGradient id="gfill" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="#2a2f35"/><stop offset="1" stop-color="#15181b"/></radialGradient></defs>
+        <circle r="100" fill="url(#gfill)" style="stroke:var(--terminal-600)" stroke-width="1"/>
+        <g id="grat" fill="none" style="stroke:var(--terminal-600)" stroke-width="0.7" opacity="0.9"></g>
+        <g transform="rotate(-18)">
+          <path id="route" d="M -100 0 A 100 40 0 0 0 100 0 A 100 40 0 0 0 -100 0" fill="none" stroke="none"/>
+          <g id="dots"></g><g id="marks"></g>
+          <g id="plane"><path d="M9 0 L-3 -2.2 L-7 -9 L-9.5 -9 L-6.5 -1.8 L-11 -1.6 L-13.5 -4.5 L-15 -4.5 L-13.5 0 L-15 4.5 L-13.5 4.5 L-11 1.6 L-6.5 1.8 L-9.5 9 L-7 9 L-3 2.2 Z" style="fill:var(--amber-300);filter:drop-shadow(0 0 4px rgba(255,181,46,.8))"/></g>
+        </g>
+      </svg>
+    </div>
+
+    <div style="text-align:center">
+      <div id="total" style="display:flex;justify-content:center"></div>
+      <div class="otm-label" style="margin-top:8px" id="phrase">Taxiing&#8230;</div>
+    </div>
+
+    <div class="otm-panel" style="padding:6px 12px">
+      <div id="rows"></div>
+    </div>
+
+    <div class="otm-passport" style="display:flex;align-items:center;gap:12px;padding:10px 12px">
+      <span class="otm-seal t-uncharted" style="width:54px;height:54px;font-size:11px;line-height:11px;--rot:-10deg">2%<small>said it</small></span>
+      <div style="flex:1">
+        <div style="font:500 9.5px/1 var(--font-mono);letter-spacing:.16em;color:var(--paper-muted);text-transform:uppercase">Best answer of the day</div>
+        <div style="font:800 24px/26px var(--font-flap);text-transform:uppercase;letter-spacing:.04em;margin-top:3px">Comoros</div>
+        <div style="font:400 12px/14px var(--font-sans);color:var(--paper-muted)">Island nation in Africa · Uncharted · 4,863 km</div>
+      </div>
+    </div>
+
+    <button class="otm-pass amber slim" style="margin-top:auto" aria-label="Share your flight">
+      <span class="main" style="padding:10px 16px"><small>No spoilers in the card</small><strong>Share flight &#8599;</strong></span>
+      <span class="stub" style="padding:10px 10px 8px 12px"><small>FLT</small><b>#1</b></span>
+    </button>
+  </div>
+</div></div>
+<script>
+(function () {
+  var O = window.OffTheMap; O.phone(document.getElementById('phone'));
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(n, a, p) { var e = document.createElementNS(NS, n); for (var k in a) { if (k === 'fill' || k === 'stroke') e.style[k] = a[k]; else e.setAttribute(k, a[k]); } (p || null) && p.appendChild(e); return e; }
+
+  // graticule
+  var grat = document.getElementById('grat');
+  [100, 82, 57, 26].forEach(function (rx) { el('ellipse', { rx: rx, ry: 100 }, grat); });
+  [-70, -36, 0, 36, 70].forEach(function (y) { var rx = Math.sqrt(10000 - y * y); el('ellipse', { cy: y, rx: rx, ry: rx * 0.16 }, grat); });
+
+  var path = document.getElementById('route'), L = path.getTotalLength();
+  var dots = document.getElementById('dots'), marks = document.getElementById('marks'), plane = document.getElementById('plane');
+  var STEP = 7, dotEls = [];
+  for (var s = 0; s <= L; s += STEP) {
+    var p = path.getPointAtLength(s), back = s > L / 2;
+    dotEls.push({ at: s, e: el('circle', { cx: p.x.toFixed(2), cy: p.y.toFixed(2), r: back ? 1.1 : 1.5, fill: 'var(--amber-700)', opacity: back ? 0.35 : 0.9 }, dots), back: back });
+  }
+  // stop markers at cumulative km
+  var cum = 0, stops = [];
+  O.SAMPLE.forEach(function (st, i) {
+    cum += st.km; if (!st.km) return;
+    var at = cum / 40075 * L, p = path.getPointAtLength(at);
+    var g = el('g', { opacity: 0, transform: 'translate(' + p.x.toFixed(2) + ' ' + p.y.toFixed(2) + ')' }, marks);
+    el('circle', { r: 4.2, fill: 'var(--terminal-900)', stroke: 'var(--tier-' + st.tier + '-lit)', 'stroke-width': 2 }, g);
+    stops.push({ at: at, g: g });
+  });
+  // start marker
+  var sp = path.getPointAtLength(0); el('circle', { cx: sp.x, cy: sp.y, r: 3, fill: 'var(--ink-100)' }, marks);
+
+  var TOTAL = O.SAMPLE.reduce(function (a, s) { return a + s.km; }, 0), ALL_UNCHARTED = O.SAMPLE.every(function (s) { return s.tier === 'uncharted'; }), tb = O.board(document.getElementById('total'), ['     0 KM'], { cols: 9, size: 'xl', instant: true });
+  var phrase = document.getElementById('phrase');
+  function phraseFor(km) {
+    if (ALL_UNCHARTED && km >= TOTAL) return 'Circumnavigation · all 7 Uncharted';
+    if (km >= 18000) return 'Nearly the other side of the world';
+    if (km >= 5000) return 'Across an ocean';
+    if (km >= 1000) return 'Across the border';
+    return 'Taxiing…';
+  }
+  function placePlane(at) {
+    var a = path.getPointAtLength(Math.max(0, at - 0.5)), b = path.getPointAtLength(Math.min(L, at + 0.5));
+    var ang = Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI, p = path.getPointAtLength(at);
+    plane.setAttribute('transform', 'translate(' + p.x.toFixed(2) + ' ' + p.y.toFixed(2) + ') rotate(' + ang.toFixed(1) + ') scale(0.9)');
+  }
+  function fmtKm(n) { var s = O.fmt(n) + ' KM'; while (s.length < 9) s = ' ' + s; return s; }
+  var raf;
+  function run() {
+    cancelAnimationFrame(raf);
+    var dur = O.reduced ? 1 : 3800, t0 = performance.now(), end = TOTAL / 40075 * L;
+    dotEls.forEach(function (d) { d.e.style.fill = 'var(--amber-700)'; });
+    stops.forEach(function (s) { s.g.setAttribute('opacity', 0); });
+    (function f(now) {
+      var p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 2.4), at = end * e, km = TOTAL * e;
+      dotEls.forEach(function (d) { if (d.at <= at) d.e.style.fill = 'var(--amber-500)'; });
+      stops.forEach(function (s) { if (s.at <= at + 0.01) s.g.setAttribute('opacity', 1); });
+      placePlane(at); tb.setInstant([fmtKm(km)]); phrase.textContent = phraseFor(km);
+      if (p < 1) raf = requestAnimationFrame(f);
+      else { tb.set([fmtKm(TOTAL)], { stagger: 0, direct: true }); }
+    })(t0);
+  }
+  var gw = document.getElementById('globeWrap');
+  gw.addEventListener('click', run); gw.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); run(); } });
+  setTimeout(run, 400);
+
+  // tier breakdown
+  document.getElementById('rows').innerHTML = O.SAMPLE.map(function (st, i) {
+    var t = O.TIERS[st.tier];
+    return '<div class="' + t.cls + '" style="display:flex;align-items:center;gap:10px;height:27px;' + (i ? 'border-top:1px dashed var(--terminal-600)' : '') + '">' +
+      '<span class="otm-data" style="width:18px;color:var(--ink-300)">' + (i + 1) + '</span>' +
+      '<span style="position:relative;width:12px;height:12px;border-radius:2px;background:var(--lit);flex:none">' + (st.redeye ? '<span title="Red-Eye badge" style="position:absolute;right:-4px;top:-4px;width:7px;height:7px;border-radius:50%;background:var(--tier-redeye-lit);box-shadow:0 0 0 1.5px var(--terminal-800)"></span>' : '') + '</span>' +
+      '<span style="flex:1;font:700 16px/1 var(--font-flap);letter-spacing:.06em;text-transform:uppercase;color:' + (st.answer ? 'var(--ink-100)' : 'var(--ink-300)') + '">' + (st.answer || '— gate closed') + '</span>' +
+      '<span style="font:600 9.5px/1 var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--lit);width:86px">' + t.name + (st.redeye ? '<br><span style="color:var(--tier-redeye-lit)">+ Red-Eye</span>' : '') + '</span>' +
+      '<span class="otm-data" style="width:52px;text-align:right">' + O.fmt(st.km) + '</span></div>';
+  }).join('');
+})();
+</script>

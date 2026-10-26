@@ -1,0 +1,79 @@
+<!-- @dsCard group="Screens" height=884 subtitle="4 · Answer reveal — tier stamp, then the Red-Eye badge (no km). Tap the passport page to replay." -->
+<div class="otm-stage"><div id="phone">
+  <div class="otm-screen" id="scr" style="gap:12px">
+    <div class="otm-topbar">
+      <span class="otm-label amber">Stop 5/7 · Stamped</span>
+      <div style="text-align:right"><div class="otm-label">Travelled</div><div style="font:700 20px/1 var(--font-flap);color:var(--amber-500);letter-spacing:.04em"><span id="tot">11,103</span> KM</div></div>
+    </div>
+    <div class="otm-board" style="padding:8px 8px 9px"><div id="prompt"></div></div>
+
+    <div class="otm-passport" id="pp" style="height:288px;cursor:pointer" role="button" aria-label="Replay stamp" tabindex="0">
+      <div class="pp-head"><span>Passport · Page 05</span><span>Visas / Entries</span></div>
+      <!-- faint older stamps already on the page -->
+      <div class="otm-seal t-uncharted" style="position:absolute;left:-14px;bottom:-10px;opacity:.28;--rot:14deg;width:96px;height:96px;font-size:15px">Comoros<small>Stop 4</small></div>
+      <div class="otm-seal t-explorer" style="position:absolute;right:-8px;bottom:18px;opacity:.22;--rot:-18deg;width:84px;height:84px;font-size:13px">Arrived<small>27 Oct 26</small></div>
+      <div style="position:absolute;inset:30px 0 0;display:grid;place-items:center">
+        <div style="position:relative">
+          <div class="otm-stamp t-explorer" id="stamp" style="--rot:-7deg">
+            <div class="in">
+              <div class="s-top"><span>Stop 05</span><span>&#9992;</span><span>27 Oct 26</span></div>
+              <div class="s-tier">Explorer</div>
+              <div class="s-ans">Latvia</div>
+              <div class="s-row"><span>+3,724 km</span><span>5% said it</span></div>
+            </div>
+          </div>
+          <div class="otm-redeye" id="badge" style="position:absolute;left:-34px;top:-58px;--rot:-12deg;width:78px;height:78px"><span><b>Red-Eye</b><small>0:02 left</small></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="otm-kv" style="align-items:center">
+      <div><div class="otm-label">Distance earned</div><div style="font:800 40px/40px var(--font-flap);color:var(--amber-500);letter-spacing:.02em">+<span id="earn">0</span> KM</div></div>
+      <div style="text-align:right"><div class="otm-label">Players who said it</div><div style="font:700 28px/32px var(--font-flap)">5%</div></div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px dashed var(--tier-redeye-lit);border-radius:var(--radius-card)">
+      <span class="otm-redeye-pill">&#9200; Red-Eye</span>
+      <span style="font:400 13px/17px var(--font-sans);color:var(--ink-300)">Correct with 0:02 left. Badge only, no extra km.</span>
+    </div>
+
+    <div class="otm-panel" style="padding:10px 12px">
+      <div class="otm-label" style="margin-bottom:8px">What the terminal said</div>
+      <div id="dist"></div>
+    </div>
+
+    <button class="otm-pass slim" style="margin-top:auto" aria-label="Next stop">
+      <span class="main" style="padding:10px 16px"><small>Stop 6 · Boarding</small><strong>Next stop &#8594;</strong></span>
+      <span class="stub" style="padding:10px 10px 8px 12px"><small>STOP</small><b>6/7</b></span>
+    </button>
+  </div>
+</div></div>
+<script>
+(function () {
+  var O = window.OffTheMap; O.phone(document.getElementById('phone'));
+  O.board(document.getElementById('prompt'), ['NAME A COUNTRY WITH', 'A RED AND WHITE FLAG'], { cols: 20, size: 'sm', instant: true });
+  var dist = [['Poland', 31], ['Japan', 19], ['Austria', 12], ['Latvia', 5, true]];
+  document.getElementById('dist').innerHTML = dist.map(function (d) {
+    var t = O.tierFor(d[1] / 100);
+    return '<div class="t-' + t + '" style="display:flex;align-items:center;gap:10px;height:22px">' +
+      '<span style="width:84px;font:700 15px/1 var(--font-flap);letter-spacing:.06em;text-transform:uppercase;color:' + (d[2] ? 'var(--amber-500)' : 'var(--ink-100)') + '">' + d[0] + '</span>' +
+      '<span style="flex:1;height:8px;background:var(--terminal-700);border-radius:2px;overflow:hidden"><span style="display:block;height:100%;width:' + (d[1] / 31 * 100) + '%;background:var(--lit)"></span></span>' +
+      '<span class="otm-data" style="width:30px;text-align:right;color:var(--ink-300)">' + d[1] + '%</span>' +
+      '<span class="otm-data" style="width:50px;text-align:right">' + O.fmt(O.kmFor(d[1] / 100)) + '</span></div>';
+  }).join('');
+  var stamp = document.getElementById('stamp'), badge = document.getElementById('badge'), pp = document.getElementById('pp');
+  function play() {
+    stamp.style.opacity = 0; badge.style.opacity = 0;
+    document.getElementById('tot').textContent = '11,103'; document.getElementById('earn').textContent = '0';
+    setTimeout(function () {
+      stamp.style.opacity = '';
+      O.stampSlam(stamp, document.getElementById('scr'));
+      setTimeout(function () { O.countUp(document.getElementById('earn'), 3724, 900); O.countUp(document.getElementById('tot'), 14827, 900, 11103); }, 380);
+      setTimeout(function () { badge.style.opacity = ''; badge.classList.remove('slam'); void badge.offsetWidth; badge.classList.add('slam'); }, 900);
+    }, 450);
+  }
+  pp.addEventListener('click', play);
+  pp.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); play(); } });
+  play();
+})();
+</script>

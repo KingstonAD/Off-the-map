@@ -1,0 +1,47 @@
+/* Generated from design/tokens.json — Terminal (dark) is the only theme. */
+:root {
+  --terminal-950: #0b0c0e;
+  --terminal-900: #121417;
+  --terminal-800: #1a1d21;
+  --terminal-700: #24282d;
+  --terminal-600: #33383f;
+  --ink-100: #f2ede3;
+  --ink-300: #a39f95;
+  --amber-500: #ffb52e;
+  --amber-300: #ffd27a;
+  --amber-700: #b8791a;
+  --gate-red: #ff4d3d;
+  --paper-100: #f1e8d4;
+  --paper-200: #e2d5b9;
+  --paper-ink: #1f1b16;
+  --paper-muted: #5f5748;
+  --tier-tourist: #5b6670;
+  --tier-backpacker: #2f6b45;
+  --tier-explorer: #1f4f8f;
+  --tier-uncharted: #6e2463;
+  --tier-redeye: #b3261e;
+  --tier-lost: #3b342d;
+  --tier-tourist-lit: #b4bec8;
+  --tier-backpacker-lit: #74d39a;
+  --tier-explorer-lit: #74aefc;
+  --tier-uncharted-lit: #e08bd2;
+  --tier-redeye-lit: #ff7466;
+  --tier-lost-lit: #8f877c;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --radius-flap: 3px;
+  --radius-card: 10px;
+  --radius-pass: 14px;
+  --radius-phone: 44px;
+  --shadow-board: inset 0 1px 0 rgba(255,255,255,0.05), 0 12px 32px rgba(0,0,0,0.45);
+  --shadow-pass: 0 1px 0 rgba(255,255,255,0.6) inset, 0 10px 24px rgba(0,0,0,0.45);
+  /* next/font supplies --ff-*; fall back to the families in tokens.json */
+  --font-flap: var(--ff-flap), "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-mono: var(--ff-mono), "IBM Plex Mono", ui-monospace, monospace;
+  --font-sans: var(--ff-sans), "IBM Plex Sans", system-ui, sans-serif;
+  color-scheme: dark;
+}

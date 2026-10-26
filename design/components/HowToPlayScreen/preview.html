@@ -1,0 +1,74 @@
+<!-- @dsCard group="Screens" height=884 subtitle="2 · How to Play — rules, distance scale, tiers by share of players, Red-Eye badge" -->
+<div class="otm-stage"><div id="phone">
+  <div class="otm-screen" style="gap:12px">
+    <div class="otm-topbar">
+      <button class="otm-icon-btn" aria-label="Back">&#8592;</button>
+      <span class="otm-label amber">Pre-flight briefing</span>
+      <span style="width:32px"></span>
+    </div>
+    <h1 class="otm-title">How to play</h1>
+
+    <div class="otm-board" style="padding:0;display:grid;grid-template-columns:1fr 1fr">
+      <div style="padding:10px 12px;border-right:1px dashed var(--terminal-600);border-bottom:1px dashed var(--terminal-600)">
+        <div class="otm-label">Stops</div><div style="font:700 26px/30px var(--font-flap)" class="otm-amber">7 PROMPTS</div><div class="otm-label" style="letter-spacing:.08em;text-transform:none">Same for everyone, every day</div></div>
+      <div style="padding:10px 12px;border-bottom:1px dashed var(--terminal-600)">
+        <div class="otm-label">Gate time</div><div style="font:700 26px/30px var(--font-flap)" class="otm-amber">20 SEC</div><div class="otm-label" style="letter-spacing:.08em;text-transform:none">Per stop. Then the gate shuts</div></div>
+      <div style="padding:10px 12px;border-right:1px dashed var(--terminal-600)">
+        <div class="otm-label">Carry-on</div><div style="font:700 26px/30px var(--font-flap)" class="otm-amber">1 ANSWER</div><div class="otm-label" style="letter-spacing:.08em;text-transform:none">No changes once it's stamped</div></div>
+      <div style="padding:10px 12px">
+        <div class="otm-label">Mileage</div><div style="font:700 26px/30px var(--font-flap)" class="otm-amber">RARE = FAR</div><div class="otm-label" style="letter-spacing:.08em;text-transform:none">The fewer who said it, the farther</div></div>
+    </div>
+
+    <div>
+      <div class="otm-kv" style="margin-bottom:8px"><span class="otm-label">Distance scale</span><span class="otm-label">Max 5,725 km / stop</span></div>
+      <div id="scale" style="position:relative;padding-left:26px"></div>
+    </div>
+
+    <div class="otm-passport" style="padding-bottom:9px">
+      <div class="pp-head"><span>Stamp tier · share of players</span><span>KM per stop</span></div>
+      <div id="tiers" style="padding:6px 12px 0"></div>
+      <div style="margin:8px 12px 0;padding-top:7px;border-top:1px dashed var(--paper-200);font:600 9.5px/1 var(--font-mono);letter-spacing:.06em;color:var(--paper-muted);text-align:center">KM = 5,725 × LOG(1/SHARE) ÷ LOG(100) · MAX 5,725</div>
+    </div>
+
+    <button class="otm-pass amber slim" style="margin-top:auto" aria-label="Got it, back to the gate">
+      <span class="main" style="padding:10px 16px"><small>Ready?</small><strong>Got it &#8594;</strong></span>
+      <span class="stub" style="padding:10px 10px 8px 12px"><small>GATE</small><b>1</b></span>
+    </button>
+  </div>
+</div></div>
+<script>
+(function () {
+  var O = window.OffTheMap; O.phone(document.getElementById('phone'));
+  var scale = [
+    ['1,000 KM', 'Across the border'],
+    ['5,000 KM', 'Across an ocean'],
+    ['20,000 KM', 'The other side of the world'],
+    ['40,075 KM', 'Circumnavigation · all 7 Uncharted']
+  ];
+  var s = document.getElementById('scale');
+  s.innerHTML = '<div style="position:absolute;left:7px;top:10px;bottom:10px;border-left:2px dotted var(--amber-700)"></div>' +
+    scale.map(function (r, i) {
+      var last = i === 3;
+      return '<div style="position:relative;display:flex;align-items:baseline;gap:12px;height:27px">' +
+        '<span style="position:absolute;left:-24px;top:5px;width:' + (last ? 14 : 10) + 'px;height:' + (last ? 14 : 10) + 'px;margin-left:' + (last ? -2 : 0) + 'px;border-radius:50%;background:' + (last ? 'var(--amber-500)' : 'var(--terminal-900)') + ';border:2px solid var(--amber-500);' + (last ? 'box-shadow:0 0 12px rgba(255,181,46,.6)' : '') + '"></span>' +
+        '<span style="font:700 21px/1 var(--font-flap);color:var(--amber-500);width:92px;letter-spacing:.03em">' + r[0] + '</span>' +
+        '<span style="font:400 14px/1 var(--font-sans);color:' + (last ? 'var(--ink-100)' : 'var(--ink-300)') + '">' + r[1] + '</span></div>';
+    }).join('');
+  var tiers = [
+    ['tourist', 'T', 'Tourist', '25%+ said it', 'up to ~1,700'],
+    ['backpacker', 'B', 'Backpacker', '10–25%', '~1,700–2,900'],
+    ['explorer', 'E', 'Explorer', '3–10%', '~2,900–4,400'],
+    ['uncharted', 'U', 'Uncharted', 'Under 3%', '~4,400–5,725'],
+    ['lost', 'L', 'Lost Luggage', 'Wrong or gate closed', '0'],
+    ['redeye', 'R', 'Red-Eye badge', 'Last 3 seconds', 'No km']
+  ];
+  document.getElementById('tiers').innerHTML = tiers.map(function (t, i) {
+    var badge = t[0] === 'redeye';
+    return '<div style="display:flex;align-items:center;gap:10px;height:33px;' + (badge ? 'border-top:1px dashed var(--paper-200);margin-top:3px;padding-top:3px' : '') + '">' +
+      '<span class="otm-seal t-' + t[0] + '" style="width:28px;height:28px;font-size:14px;line-height:14px;box-shadow:inset 0 0 0 2px var(--paper-100),inset 0 0 0 3px currentColor;border-width:2px;' + (badge ? 'border-style:dashed;' : '') + '--rot:' + [-8, 6, -4, 9, 5, -10][i] + 'deg">' + t[1] + '</span>' +
+      '<b style="width:118px;font:800 16px/1 var(--font-flap);letter-spacing:.04em;text-transform:uppercase;color:var(--ink)" class="t-' + t[0] + '">' + t[2] + '</b>' +
+      '<span style="flex:1;font:400 12px/14px var(--font-sans);color:var(--paper-muted)">' + t[3] + '</span>' +
+      '<span style="font:600 11.5px/1 var(--font-mono);color:var(--paper-ink);white-space:nowrap">' + t[4] + '</span></div>';
+  }).join('');
+})();
+</script>

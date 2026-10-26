@@ -1,0 +1,19 @@
+# dependencies and build output
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# secrets: every .env file except the template
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+supabase/.temp/
+supabase/.branches/
+
+# local dev data and deploy state
+.data/
+.vercel

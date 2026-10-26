@@ -1,0 +1,638 @@
+{
+  "flight": 1,
+  "date": "2026-10-27",
+  "stops": [
+    {
+      "id": "china-borders",
+      "prompt": "Name a country bordering China",
+      "board": [
+        "NAME A COUNTRY",
+        "BORDERING",
+        "CHINA"
+      ],
+      "category": "Countries",
+      "pool": "country",
+      "answers": [
+        {
+          "id": "RU",
+          "name": "Russia",
+          "prior": 0.09366
+        },
+        {
+          "id": "MN",
+          "name": "Mongolia",
+          "prior": 0.05887
+        },
+        {
+          "id": "KZ",
+          "name": "Kazakhstan",
+          "prior": 0.07508
+        },
+        {
+          "id": "KG",
+          "name": "Kyrgyzstan",
+          "aliases": [
+            "Kyrgyz Republic"
+          ],
+          "prior": 0.05993
+        },
+        {
+          "id": "TJ",
+          "name": "Tajikistan",
+          "prior": 0.04868
+        },
+        {
+          "id": "AF",
+          "name": "Afghanistan",
+          "prior": 0.07505
+        },
+        {
+          "id": "PK",
+          "name": "Pakistan",
+          "prior": 0.08359
+        },
+        {
+          "id": "IN",
+          "name": "India",
+          "prior": 0.11571
+        },
+        {
+          "id": "NP",
+          "name": "Nepal",
+          "prior": 0.06978
+        },
+        {
+          "id": "BT",
+          "name": "Bhutan",
+          "prior": 0.05368
+        },
+        {
+          "id": "MM",
+          "name": "Myanmar",
+          "aliases": [
+            "Burma"
+          ],
+          "prior": 0.06841
+        },
+        {
+          "id": "LA",
+          "name": "Laos",
+          "aliases": [
+            "Lao PDR"
+          ],
+          "prior": 0.0497
+        },
+        {
+          "id": "VN",
+          "name": "Vietnam",
+          "aliases": [
+            "Viet Nam"
+          ],
+          "prior": 0.07274
+        },
+        {
+          "id": "KP",
+          "name": "North Korea",
+          "aliases": [
+            "DPRK"
+          ],
+          "prior": 0.0751
+        }
+      ]
+    },
+    {
+      "id": "landlocked-africa",
+      "prompt": "Name a landlocked country in Africa",
+      "board": [
+        "LANDLOCKED",
+        "COUNTRY IN",
+        "AFRICA"
+      ],
+      "category": "Countries",
+      "pool": "country",
+      "answers": [
+        {
+          "id": "ML",
+          "name": "Mali",
+          "prior": 0.06573
+        },
+        {
+          "id": "NE",
+          "name": "Niger",
+          "prior": 0.05764
+        },
+        {
+          "id": "TD",
+          "name": "Chad",
+          "prior": 0.05417
+        },
+        {
+          "id": "BF",
+          "name": "Burkina Faso",
+          "prior": 0.07716
+        },
+        {
+          "id": "CF",
+          "name": "Central African Republic",
+          "aliases": [
+            "CAR"
+          ],
+          "prior": 0.05532
+        },
+        {
+          "id": "SS",
+          "name": "South Sudan",
+          "prior": 0.06525
+        },
+        {
+          "id": "ET",
+          "name": "Ethiopia",
+          "prior": 0.08194
+        },
+        {
+          "id": "UG",
+          "name": "Uganda",
+          "prior": 0.07089
+        },
+        {
+          "id": "RW",
+          "name": "Rwanda",
+          "prior": 0.06378
+        },
+        {
+          "id": "BI",
+          "name": "Burundi",
+          "prior": 0.05232
+        },
+        {
+          "id": "ZM",
+          "name": "Zambia",
+          "prior": 0.05322
+        },
+        {
+          "id": "MW",
+          "name": "Malawi",
+          "prior": 0.04807
+        },
+        {
+          "id": "ZW",
+          "name": "Zimbabwe",
+          "prior": 0.07232
+        },
+        {
+          "id": "BW",
+          "name": "Botswana",
+          "prior": 0.05674
+        },
+        {
+          "id": "LS",
+          "name": "Lesotho",
+          "prior": 0.05346
+        },
+        {
+          "id": "SZ",
+          "name": "Eswatini",
+          "aliases": [
+            "Swaziland"
+          ],
+          "prior": 0.07197
+        }
+      ]
+    },
+    {
+      "id": "equator",
+      "prompt": "Name a country the equator passes through",
+      "board": [
+        "COUNTRY ON",
+        "THE EQUATOR"
+      ],
+      "category": "Countries",
+      "pool": "country",
+      "notes": "Maldives is crossed only in its waters; accepted, since most lists include it.",
+      "answers": [
+        {
+          "id": "EC",
+          "name": "Ecuador",
+          "prior": 0.06797
+        },
+        {
+          "id": "CO",
+          "name": "Colombia",
+          "prior": 0.08865
+        },
+        {
+          "id": "BR",
+          "name": "Brazil",
+          "prior": 0.10924
+        },
+        {
+          "id": "ST",
+          "name": "São Tomé and Príncipe",
+          "aliases": [
+            "Sao Tome and Principe",
+            "Sao Tome"
+          ],
+          "prior": 0.04865
+        },
+        {
+          "id": "GA",
+          "name": "Gabon",
+          "prior": 0.05004
+        },
+        {
+          "id": "CG",
+          "name": "Republic of the Congo",
+          "aliases": [
+            "Congo",
+            "Congo-Brazzaville"
+          ],
+          "prior": 0.05534
+        },
+        {
+          "id": "CD",
+          "name": "DR Congo",
+          "aliases": [
+            "DRC",
+            "Democratic Republic of the Congo",
+            "Congo-Kinshasa"
+          ],
+          "prior": 0.10308
+        },
+        {
+          "id": "UG",
+          "name": "Uganda",
+          "prior": 0.07205
+        },
+        {
+          "id": "KE",
+          "name": "Kenya",
+          "prior": 0.06665
+        },
+        {
+          "id": "SO",
+          "name": "Somalia",
+          "prior": 0.08318
+        },
+        {
+          "id": "MV",
+          "name": "Maldives",
+          "prior": 0.08205
+        },
+        {
+          "id": "ID",
+          "name": "Indonesia",
+          "prior": 0.10499
+        },
+        {
+          "id": "KI",
+          "name": "Kiribati",
+          "prior": 0.0681
+        }
+      ]
+    },
+    {
+      "id": "south-america",
+      "prompt": "Name a country in South America",
+      "board": [
+        "NAME A COUNTRY",
+        "IN SOUTH",
+        "AMERICA"
+      ],
+      "category": "Countries",
+      "pool": "country",
+      "answers": [
+        {
+          "id": "AR",
+          "name": "Argentina",
+          "prior": 0.1132
+        },
+        {
+          "id": "BO",
+          "name": "Bolivia",
+          "prior": 0.06287
+        },
+        {
+          "id": "BR",
+          "name": "Brazil",
+          "prior": 0.10565
+        },
+        {
+          "id": "CL",
+          "name": "Chile",
+          "prior": 0.07022
+        },
+        {
+          "id": "CO",
+          "name": "Colombia",
+          "prior": 0.08574
+        },
+        {
+          "id": "EC",
+          "name": "Ecuador",
+          "prior": 0.06573
+        },
+        {
+          "id": "GY",
+          "name": "Guyana",
+          "prior": 0.07965
+        },
+        {
+          "id": "PY",
+          "name": "Paraguay",
+          "prior": 0.0708
+        },
+        {
+          "id": "PE",
+          "name": "Peru",
+          "prior": 0.06578
+        },
+        {
+          "id": "SR",
+          "name": "Suriname",
+          "prior": 0.07108
+        },
+        {
+          "id": "UY",
+          "name": "Uruguay",
+          "prior": 0.07147
+        },
+        {
+          "id": "VE",
+          "name": "Venezuela",
+          "prior": 0.1378
+        }
+      ]
+    },
+    {
+      "id": "caribbean-islands",
+      "prompt": "Name an island country in the Caribbean",
+      "board": [
+        "CARIBBEAN",
+        "ISLAND COUNTRY"
+      ],
+      "category": "Countries",
+      "pool": "country",
+      "notes": "Sovereign countries only (no Puerto Rico, Aruba, etc.). The Bahamas is accepted.",
+      "answers": [
+        {
+          "id": "AG",
+          "name": "Antigua and Barbuda",
+          "prior": 0.05471
+        },
+        {
+          "id": "BS",
+          "name": "Bahamas",
+          "aliases": [
+            "The Bahamas"
+          ],
+          "prior": 0.08277
+        },
+        {
+          "id": "BB",
+          "name": "Barbados",
+          "prior": 0.07905
+        },
+        {
+          "id": "CU",
+          "name": "Cuba",
+          "prior": 0.10854
+        },
+        {
+          "id": "DM",
+          "name": "Dominica",
+          "prior": 0.06338
+        },
+        {
+          "id": "DO",
+          "name": "Dominican Republic",
+          "prior": 0.09225
+        },
+        {
+          "id": "GD",
+          "name": "Grenada",
+          "prior": 0.06813
+        },
+        {
+          "id": "HT",
+          "name": "Haiti",
+          "prior": 0.09392
+        },
+        {
+          "id": "JM",
+          "name": "Jamaica",
+          "prior": 0.09163
+        },
+        {
+          "id": "KN",
+          "name": "Saint Kitts and Nevis",
+          "aliases": [
+            "St Kitts and Nevis"
+          ],
+          "prior": 0.06171
+        },
+        {
+          "id": "LC",
+          "name": "Saint Lucia",
+          "aliases": [
+            "St Lucia"
+          ],
+          "prior": 0.06699
+        },
+        {
+          "id": "VC",
+          "name": "Saint Vincent and the Grenadines",
+          "aliases": [
+            "St Vincent and the Grenadines"
+          ],
+          "prior": 0.0547
+        },
+        {
+          "id": "TT",
+          "name": "Trinidad and Tobago",
+          "prior": 0.08221
+        }
+      ]
+    },
+    {
+      "id": "states-bordering-canada",
+      "prompt": "Name a US state that borders Canada",
+      "board": [
+        "US STATE THAT",
+        "BORDERS",
+        "CANADA"
+      ],
+      "category": "US States",
+      "pool": "us_state",
+      "notes": "All 13 accepted, including Ohio and Pennsylvania (water boundary in Lake Erie).",
+      "answers": [
+        {
+          "id": "US-AK",
+          "name": "Alaska",
+          "prior": 0.10042
+        },
+        {
+          "id": "US-WA",
+          "name": "Washington",
+          "prior": 0.08062
+        },
+        {
+          "id": "US-ID",
+          "name": "Idaho",
+          "prior": 0.06148
+        },
+        {
+          "id": "US-MT",
+          "name": "Montana",
+          "prior": 0.07218
+        },
+        {
+          "id": "US-ND",
+          "name": "North Dakota",
+          "prior": 0.05284
+        },
+        {
+          "id": "US-MN",
+          "name": "Minnesota",
+          "prior": 0.08977
+        },
+        {
+          "id": "US-MI",
+          "name": "Michigan",
+          "prior": 0.07792
+        },
+        {
+          "id": "US-OH",
+          "name": "Ohio",
+          "prior": 0.079
+        },
+        {
+          "id": "US-PA",
+          "name": "Pennsylvania",
+          "prior": 0.08906
+        },
+        {
+          "id": "US-NY",
+          "name": "New York",
+          "prior": 0.09165
+        },
+        {
+          "id": "US-VT",
+          "name": "Vermont",
+          "prior": 0.06561
+        },
+        {
+          "id": "US-NH",
+          "name": "New Hampshire",
+          "prior": 0.06672
+        },
+        {
+          "id": "US-ME",
+          "name": "Maine",
+          "prior": 0.07272
+        }
+      ]
+    },
+    {
+      "id": "red-white-flags",
+      "prompt": "Name a country whose flag is only red and white",
+      "board": [
+        "RED AND WHITE",
+        "FLAG ONLY"
+      ],
+      "category": "Flags",
+      "pool": "country",
+      "notes": "Qatar (maroon) accepted. Malta excluded (grey George Cross). Lebanon excluded (green cedar).",
+      "answers": [
+        {
+          "id": "AT",
+          "name": "Austria",
+          "prior": 0.0519
+        },
+        {
+          "id": "BH",
+          "name": "Bahrain",
+          "prior": 0.05556
+        },
+        {
+          "id": "CA",
+          "name": "Canada",
+          "prior": 0.08068
+        },
+        {
+          "id": "DK",
+          "name": "Denmark",
+          "prior": 0.05519
+        },
+        {
+          "id": "GE",
+          "name": "Georgia",
+          "prior": 0.0585
+        },
+        {
+          "id": "ID",
+          "name": "Indonesia",
+          "prior": 0.06641
+        },
+        {
+          "id": "JP",
+          "name": "Japan",
+          "prior": 0.07919
+        },
+        {
+          "id": "LV",
+          "name": "Latvia",
+          "prior": 0.04693
+        },
+        {
+          "id": "MC",
+          "name": "Monaco",
+          "prior": 0.05962
+        },
+        {
+          "id": "PE",
+          "name": "Peru",
+          "prior": 0.04302
+        },
+        {
+          "id": "PL",
+          "name": "Poland",
+          "prior": 0.06054
+        },
+        {
+          "id": "QA",
+          "name": "Qatar",
+          "prior": 0.05245
+        },
+        {
+          "id": "SG",
+          "name": "Singapore",
+          "prior": 0.076
+        },
+        {
+          "id": "CH",
+          "name": "Switzerland",
+          "prior": 0.063
+        },
+        {
+          "id": "TO",
+          "name": "Tonga",
+          "prior": 0.03273
+        },
+        {
+          "id": "TN",
+          "name": "Tunisia",
+          "prior": 0.04533
+        },
+        {
+          "id": "TR",
+          "name": "Turkey",
+          "aliases": [
+            "Türkiye",
+            "Turkiye"
+          ],
+          "prior": 0.07297
+        }
+      ]
+    }
+  ]
+}

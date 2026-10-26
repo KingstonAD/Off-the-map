@@ -1,0 +1,62 @@
+/* App shell and screen layouts. Component styles live in otm.css (ported from the design bundle). */
+
+body { color: var(--ink-100); font-family: var(--font-sans); -webkit-tap-highlight-color: transparent; -webkit-font-smoothing: antialiased; }
+button { font-family: inherit; }
+a { color: inherit; }
+
+/* The phone frame from the previews, as the real viewport: concourse light at the top + faint scanlines. */
+.otm-app {
+  max-width: 430px; margin: 0 auto; min-height: 100vh; min-height: 100dvh; position: relative;
+  display: flex; flex-direction: column; overflow-x: hidden;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 3px),
+    radial-gradient(120% 55% at 50% 0%, var(--terminal-800) 0%, var(--terminal-900) 62%);
+  background-color: var(--terminal-900);
+}
+@media (min-width: 460px) { .otm-app { box-shadow: 0 0 0 1px var(--terminal-600), 0 40px 80px rgba(0,0,0,0.6); } }
+
+.otm-screen {
+  flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 16px; position: relative;
+  padding: calc(env(safe-area-inset-top, 0px) + 14px) 16px calc(env(safe-area-inset-bottom, 0px) + 22px);
+}
+/* Gameplay fills exactly one viewport so the keyboard sits at the bottom. */
+.otm-screen.fit { height: 100vh; height: 100dvh; min-height: 0; overflow-y: auto; }
+
+.otm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.otm-flap-start .otm-row { justify-content: flex-start; }
+a.otm-pass, a.otm-tag, a.otm-icon-btn, a.otm-ghost { text-decoration: none; color: var(--paper-ink); }
+a.otm-icon-btn, a.otm-ghost { color: var(--ink-100); display: inline-grid; place-items: center; }
+.otm-pass:disabled { cursor: default; opacity: 0.6; transform: none; }
+.otm-ghost.bare { border: 0; height: 32px; }
+.otm-center { display: grid; place-items: center; flex: 1; text-align: center; }
+
+.otm-big { font: 700 20px/1 var(--font-flap); letter-spacing: 0.06em; }
+.otm-km { font: 700 20px/1 var(--font-flap); color: var(--amber-500); letter-spacing: 0.04em; }
+.otm-stat { font: 800 32px/36px var(--font-flap); margin-top: 6px; }
+.otm-note { font: 400 13px/17px var(--font-sans); color: var(--ink-300); }
+.otm-sublabel { letter-spacing: 0.08em; text-transform: none; }
+.otm-row-name { font: 700 15px/1 var(--font-flap); letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.otm-bar { flex: 1; height: 8px; background: var(--terminal-700); border-radius: 2px; overflow: hidden; }
+.otm-bar > span { display: block; height: 100%; background: var(--lit); }
+
+/* ---------- gameplay keyboard ---------- */
+.otm-kb { margin: auto -10px 0; padding: 8px 4px 4px; background: #08090a; border-radius: 10px; border: 1px solid var(--terminal-700); flex: none; }
+.otm-kb .k-row { display: flex; justify-content: center; gap: 5px; margin: 0 0 8px; }
+.otm-kb button { flex: 0 1 31px; min-width: 0; height: 42px; border: 0; border-radius: 6px; background: var(--terminal-700); color: var(--ink-100); font: 600 15px/1 var(--font-sans); cursor: pointer; padding: 0; box-shadow: 0 1px 0 #000; touch-action: manipulation; }
+.otm-kb button.wide { flex: 0 1 46px; font-size: 12px; }
+.otm-kb button:active { background: var(--terminal-600); }
+.otm-suggest .via { font: 500 10px/1 var(--font-mono); letter-spacing: 0.1em; color: var(--ink-300); text-transform: none; margin-left: 8px; }
+.otm-input .go:disabled { opacity: 0.4; cursor: default; }
+
+/* ---------- share sheet ---------- */
+.otm-sheet { position: fixed; inset: 0; z-index: 20; display: flex; justify-content: center; background: rgba(11,12,14,0.72); animation: otm-sheet-in 220ms ease-out; }
+.otm-sheet > .otm-app { width: 100%; min-height: 100%; overflow-y: auto; }
+@keyframes otm-sheet-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .otm-sheet { animation: none; } }
+
+.otm-card-k { font: 500 9px/1 var(--font-mono); letter-spacing: 0.14em; color: var(--paper-muted); }
+.otm-card-v { font: 700 22px/26px var(--font-flap); }
+
+/* ---------- yesterday ---------- */
+.otm-ystop { display: flex; flex-direction: column; gap: 10px; }
+.otm-yprompt { font: 700 22px/24px var(--font-flap); letter-spacing: 0.05em; text-transform: uppercase; color: var(--amber-500); text-shadow: 0 0 10px rgba(255,181,46,0.25); }
