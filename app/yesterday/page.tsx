@@ -3,13 +3,14 @@ import Link from 'next/link';
 import { Seal } from '@/components/PassportStamp';
 import { yesterday } from '@/lib/game';
 import { load, store, today } from '@/lib/server';
-import { fmt, pct, tierFor, TIERS } from '@/lib/scoring';
+import { CROWD_MIN, fmt, pct, TIERS } from '@/lib/scoring';
 import { addDays, boardDate, longDate } from '@/lib/time';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'Yesterday’s arrivals — Off the Map' };
 
-/** Yesterday's 7 prompts with final shares and the rarest correct answers. Built to be screenshotted. */
+/** Yesterday's 7 prompts with final crowd shares and the rarest correct answers. Built to be screenshotted.
+    A stop's crowd stats show only once CROWD_MIN players answered it; stamp tiers are the fixed scoring tiers. */
 export default async function Page() {
   const now = today();
   const y = await yesterday(store(), load, now);
@@ -36,7 +37,7 @@ export default async function Page() {
   const rarestAll = y.stops
     .filter((s) => s.rarest)
     .map((s) => ({ stop: s, a: s.rarest! }))
-    .sort((a, b) => a.a.share - b.a.share)[0];
+    .sort((a, b) => a.a.share! - b.a.share!)[0];
 
   return (
     <main className="otm-screen" style={{ gap: 14 }}>
@@ -50,13 +51,13 @@ export default async function Page() {
 
       {rarestAll && (
         <div className="otm-passport" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 14px' }}>
-          <Seal tier={tierFor(rarestAll.a.share)} rot={-10} style={{ width: 78, height: 78, fontSize: 18, lineHeight: '18px' }}>
-            <span>{pct(rarestAll.a.share)}<small>said it</small></span>
+          <Seal tier={rarestAll.a.tier} rot={-10} style={{ width: 78, height: 78, fontSize: 18, lineHeight: '18px' }}>
+            <span>{pct(rarestAll.a.share!)}<small>said it</small></span>
           </Seal>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="otm-card-k" style={{ fontSize: 9.5, letterSpacing: '.16em' }}>RAREST ANSWER OF THE DAY</div>
             <div style={{ font: '800 30px/30px var(--font-flap)', textTransform: 'uppercase', letterSpacing: '.03em', marginTop: 4 }}>
-              Only {pct(rarestAll.a.share)} said {rarestAll.a.name}
+              Only {pct(rarestAll.a.share!)} said {rarestAll.a.name}
             </div>
             <div style={{ font: '400 12px/15px var(--font-sans)', color: 'var(--paper-muted)', marginTop: 4 }}>{rarestAll.stop.prompt}</div>
           </div>
@@ -64,10 +65,10 @@ export default async function Page() {
       )}
 
       {y.stops.map((s) => {
-        const said = s.answers.filter((a) => a.count > 0);
+        const said = s.ready ? s.answers.filter((a) => (a.count ?? 0) > 0) : [];
         const top = said.slice(0, 5);
-        const max = Math.max(...top.map((a) => a.share), 0.0001);
-        const nobody = s.answers.filter((a) => a.count === 0).map((a) => a.name);
+        const max = Math.max(...top.map((a) => a.share!), 0.0001);
+        const nobody = s.ready ? s.answers.filter((a) => a.count === 0).map((a) => a.name) : [];
         return (
           <section key={s.stop} className="otm-board otm-ystop" aria-label={`Stop ${s.stop + 1}: ${s.prompt}`}>
             <div className="otm-board-head" style={{ padding: 0 }}>
@@ -78,24 +79,25 @@ export default async function Page() {
 
             {s.rarest && (
               <div className="otm-passport" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px' }}>
-                <Seal tier={tierFor(s.rarest.share)} rot={8} style={{ width: 44, height: 44, fontSize: 10, lineHeight: '10px' }}>
-                  <span>{TIERS[tierFor(s.rarest.share)].name.slice(0, 1)}</span>
+                <Seal tier={s.rarest.tier} rot={8} style={{ width: 44, height: 44, fontSize: 10, lineHeight: '10px' }}>
+                  <span>{TIERS[s.rarest.tier].name.slice(0, 1)}</span>
                 </Seal>
                 <div style={{ font: '700 18px/20px var(--font-flap)', letterSpacing: '.03em', textTransform: 'uppercase' }}>
-                  Only {pct(s.rarest.share)} said {s.rarest.name}
+                  Only {pct(s.rarest.share!)} said {s.rarest.name}
                 </div>
               </div>
             )}
 
             <div>
               {top.map((a) => (
-                <div key={a.id} className={TIERS[tierFor(a.share)].cls} style={{ display: 'flex', alignItems: 'center', gap: 10, height: 24 }}>
+                <div key={a.id} className={TIERS[a.tier].cls} style={{ display: 'flex', alignItems: 'center', gap: 10, height: 24 }}>
                   <span className="otm-row-name" style={{ width: 128 }} title={a.name}>{a.name}</span>
-                  <span className="otm-bar"><span style={{ width: `${(a.share / max) * 100}%` }} /></span>
-                  <span className="otm-data" style={{ width: 44, textAlign: 'right', color: 'var(--ink-300)' }}>{pct(a.share)}</span>
+                  <span className="otm-bar"><span style={{ width: `${(a.share! / max) * 100}%` }} /></span>
+                  <span className="otm-data" style={{ width: 44, textAlign: 'right', color: 'var(--ink-300)' }}>{pct(a.share!)}</span>
                 </div>
               ))}
-              {!top.length && <div className="otm-note">Nobody answered this stop correctly.</div>}
+              {!s.ready && <div className="otm-note">Not enough players yet. Shares show once {CROWD_MIN} players have answered a stop.</div>}
+              {s.ready && !top.length && <div className="otm-note">Nobody answered this stop correctly.</div>}
             </div>
 
             <div className="otm-label otm-sublabel" style={{ lineHeight: '15px' }}>

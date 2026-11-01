@@ -28,7 +28,7 @@ export function createSupabaseStore(url: string, serviceKey: string): Store {
         p_stop: a.stopIndex,
         p_entity: a.entityId,
         p_correct: a.correct,
-        p_prior: a.prior,
+        p_prior: a.rarity, // parameter name kept from 0001; it now carries the fixed rarity
         p_red_eye: a.redEye,
         p_answered_at: a.answeredAt,
       })) as PlayRow[] | PlayRow;

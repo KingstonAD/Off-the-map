@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import { addDays, LAUNCH_DATE } from '@/lib/time';
-import type { Flight } from '@/lib/flight-types';
+import { rarityFor, type Flight } from '@/lib/flight-types';
 import { answerStop, GameError, getProgress, logbook, results, startStop, yesterday } from '@/lib/game';
 import { resolve } from '@/lib/pools';
+import { kmFor, tierFor } from '@/lib/scoring';
 import { createMemoryStore } from '@/lib/store/memory';
 import type { Store } from '@/lib/store/types';
 
@@ -96,17 +97,63 @@ describe('game flow', () => {
     expect(s.remainingMs).toBe(12_000);
   });
 
-  it('scores popular answers lower as the crowd grows', async () => {
-    for (let i = 0; i < 30; i++) {
+  it('scores from the fixed rarity, the same no matter how many others answered', async () => {
+    const stop = base.stops[0];
+    await startStop(store, load, pid(200), D1, 0, T0);
+    const first = await answerStop(store, load, pid(200), D1, 0, 'RU', T0 + 3000);
+    for (let i = 0; i < 50; i++) {
       await startStop(store, load, pid(i), D1, 0, T0);
       await answerStop(store, load, pid(i), D1, 0, 'RU', T0 + 3000);
     }
-    await startStop(store, load, pid(100), D1, 0, T0);
-    const ru = await answerStop(store, load, pid(100), D1, 0, 'RU', T0 + 3000);
-    await startStop(store, load, pid(101), D1, 0, T0);
-    const tj = await answerStop(store, load, pid(101), D1, 0, 'TJ', T0 + 3000);
-    expect(tj.km).toBeGreaterThan(ru.km);
-    expect(ru.top[0].id).toBe('RU');
+    await startStop(store, load, pid(201), D1, 0, T0);
+    const later = await answerStop(store, load, pid(201), D1, 0, 'RU', T0 + 3000);
+    expect(later).toMatchObject({ km: first.km, tier: first.tier, rarity: first.rarity });
+    expect(first.km).toBe(kmFor(rarityFor(stop, 'RU')));
+    expect(first.tier).toBe(tierFor(rarityFor(stop, 'RU')));
+    // Everyone said Russia, yet it still scores its fixed rarity, not ~100%.
+    expect(later.crowd?.yours?.share).toBe(1);
+    expect(later.km).toBeGreaterThan(0);
+  });
+
+  it('uses a rarity override from the flight file', async () => {
+    const plain = await (async () => {
+      await startStop(store, load, pid(1), D1, 0, T0);
+      return answerStop(store, load, pid(1), D1, 0, 'TJ', T0 + 3000);
+    })();
+    const f: Flight = JSON.parse(JSON.stringify(base));
+    f.stops[0].answers.find((a) => a.id === 'TJ')!.rarity = 0.5;
+    const s2 = createMemoryStore();
+    const load2 = (d: string) => (d === D1 ? f : null);
+    await startStop(s2, load2, pid(1), D1, 0, T0);
+    const over = await answerStop(s2, load2, pid(1), D1, 0, 'TJ', T0 + 3000);
+    expect(over).toMatchObject({ rarity: 0.5, km: kmFor(0.5), tier: 'tourist' });
+    expect(over.km).not.toBe(plain.km);
+  });
+
+  it('hides crowd stats under 20 answers and shows the real share from 20', async () => {
+    // 19 answers to stop 1: 9 Russia, 5 Tajikistan, 3 wrong, 2 timed out (wrong ones count toward the 20).
+    const picks = [...Array(9).fill('RU'), ...Array(5).fill('TJ'), 'FR', 'FR', 'FR', null, null];
+    let last;
+    for (let i = 0; i < picks.length; i++) {
+      await startStop(store, load, pid(i), D1, 0, T0);
+      last = await answerStop(store, load, pid(i), D1, 0, picks[i], T0 + 3000);
+    }
+    expect(last!.crowd).toBeNull();
+    expect((await yesterday(store, load, D2))!.stops[0]).toMatchObject({ ready: false, rarest: null });
+
+    await startStop(store, load, pid(19), D1, 0, T0);
+    const r = await answerStop(store, load, pid(19), D1, 0, 'RU', T0 + 3000);
+    expect(r.crowd).not.toBeNull();
+    expect(r.crowd!.answered).toBe(20);
+    expect(r.crowd!.top[0]).toMatchObject({ id: 'RU', share: 10 / 15 });
+    expect(r.crowd!.yours).toMatchObject({ id: 'RU', share: 10 / 15 });
+    expect(r.crowd!.top[1]).toMatchObject({ id: 'TJ', share: 5 / 15 });
+    // The crowd panel carries each answer's fixed score, not one derived from the crowd.
+    expect(r.crowd!.top[1].km).toBe(kmFor(rarityFor(base.stops[0], 'TJ')));
+
+    const y = (await yesterday(store, load, D2))!.stops[0];
+    expect(y).toMatchObject({ ready: true, travellers: 20, correct: 15 });
+    expect(y.rarest).toMatchObject({ id: 'TJ', share: 5 / 15 });
   });
 
   it('builds results, yesterday and the logbook', async () => {
@@ -121,11 +168,12 @@ describe('game flow', () => {
     const y = (await yesterday(store, load, D2))!;
     expect(y.flight).toBe(1);
     expect(y.stops[0].travellers).toBe(1);
-    expect(y.stops[0].rarest?.id).toBe('TJ');
-    // Yesterday uses the raw crowd share, not the blended scoring share.
-    expect(y.stops[0].rarest?.share).toBe(1);
-    expect(y.stops[0].answers.filter((a) => a.count === 0).every((a) => a.share === 0)).toBe(true);
-    expect(r.stops[0].share).toBeLessThan(1); // the locked-in score stays blended
+    // One traveller is under the crowd threshold: no shares, no rarest answer.
+    expect(y.stops[0].ready).toBe(false);
+    expect(y.stops[0].rarest).toBeNull();
+    expect(y.stops[0].answers.every((a) => a.share === null)).toBe(true);
+    expect(r.stops[0].rarity).toBe(rarityFor(base.stops[0], 'TJ'));
+    expect(r.stops[0].crowd).toBeNull();
 
     await play(P, D2, picks, T0 + 86400_000);
     const log = await logbook(store, P, D2);

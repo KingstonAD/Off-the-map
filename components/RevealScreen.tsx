@@ -5,7 +5,7 @@ import { PassportStamp, RedEyeBadge, Seal } from '@/components/PassportStamp';
 import { SplitFlap } from '@/components/SplitFlap';
 import { useCountUp, useUnit, wrapBoard, type AnswerResp, type StartResp } from '@/lib/client';
 import { prefersReducedMotion } from '@/lib/flap';
-import { dist, kmFor, pct, STOPS_PER_FLIGHT, tierFor, TIERS } from '@/lib/scoring';
+import { CROWD_MIN, dist, pct, STOPS_PER_FLIGHT, TIERS } from '@/lib/scoring';
 import { stampDate } from '@/lib/time';
 
 type Props = { r: AnswerResp; prompt: string; previous: StartResp['previous']; prevKm: number; onNext: () => void };
@@ -36,10 +36,12 @@ export function RevealScreen({ r, prompt, previous, prevKm, onNext }: Props) {
   const left = `0:${pad2(Math.max(0, Math.ceil(r.leftMs / 1000)))}`;
   const last = previous.filter((p) => p.name).at(-1);
 
-  // Top 4, with your answer swapped into the last row if it isn't already there.
-  const rows = r.top.slice(0, 4);
-  if (r.yours && !rows.some((x) => x.id === r.yours!.id)) rows[rows.length - 1] = r.yours;
+  // Live crowd (display only): top 4, with your answer swapped into the last row if it isn't already there.
+  const crowd = r.crowd;
+  const rows = crowd ? crowd.top.slice(0, 4) : [];
+  if (crowd?.yours && !rows.some((x) => x.id === crowd.yours!.id)) rows[rows.length - 1] = crowd.yours;
   const max = Math.max(...rows.map((x) => x.share), 0.0001);
+  const saidIt = !lost && crowd?.yours ? pct(crowd.yours.share) : null;
 
   return (
     <main className={`otm-screen${stage >= 1 ? ' otm-shake' : ''}`} key={replay} style={{ gap: 12 }}>
@@ -82,7 +84,7 @@ export function RevealScreen({ r, prompt, previous, prevKm, onNext }: Props) {
               top={[`Stop ${pad2(n)}`, stampDate(r.date)]}
               answer={answer}
               left={`+${dist(r.km, unit)} ${unit}`}
-              right={lost ? (r.timedOut ? 'Gate closed' : 'Not on the list') : `${pct(r.share ?? 0)} said it`}
+              right={lost ? (r.timedOut ? 'Gate closed' : 'Not on the list') : saidIt ? `${saidIt} said it` : ''}
               slam={stage >= 1}
               style={{ opacity: stage >= 1 ? undefined : 0 }}
             />
@@ -105,7 +107,9 @@ export function RevealScreen({ r, prompt, previous, prevKm, onNext }: Props) {
         </div>
         <div style={{ textAlign: 'right' }}>
           <div className="otm-label">Players who said it</div>
-          <div style={{ font: '700 28px/32px var(--font-flap)' }}>{lost ? '—' : pct(r.share ?? 0)}</div>
+          {lost || saidIt
+            ? <div style={{ font: '700 28px/32px var(--font-flap)' }}>{lost ? '—' : `${saidIt}`}</div>
+            : <div className="otm-note" style={{ marginTop: 4 }}>Not enough players yet</div>}
         </div>
       </div>
 
@@ -125,14 +129,15 @@ export function RevealScreen({ r, prompt, previous, prevKm, onNext }: Props) {
 
       <div className="otm-panel" style={{ padding: '10px 12px' }}>
         <div className="otm-label" style={{ marginBottom: 8 }}>What the terminal said</div>
+        {!crowd && <div className="otm-note">Not enough players yet. The crowd shows up once {CROWD_MIN} players have answered this stop.</div>}
         {rows.map((d) => {
           const mine = d.id === r.entityId && !lost;
           return (
-            <div key={d.id} className={TIERS[tierFor(d.share)].cls} style={{ display: 'flex', alignItems: 'center', gap: 10, height: 22 }}>
+            <div key={d.id} className={TIERS[d.tier].cls} style={{ display: 'flex', alignItems: 'center', gap: 10, height: 22 }}>
               <span className="otm-row-name" style={{ width: 112, color: mine ? 'var(--amber-500)' : 'var(--ink-100)' }} title={d.name}>{d.name}</span>
               <span className="otm-bar"><span style={{ width: `${(d.share / max) * 100}%` }} /></span>
               <span className="otm-data" style={{ width: 40, textAlign: 'right', color: 'var(--ink-300)' }}>{pct(d.share)}</span>
-              <span className="otm-data" style={{ width: 50, textAlign: 'right' }}>{dist(kmFor(d.share), unit)}</span>
+              <span className="otm-data" style={{ width: 50, textAlign: 'right' }}>{dist(d.km, unit)}</span>
             </div>
           );
         })}

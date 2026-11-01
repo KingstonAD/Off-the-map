@@ -37,19 +37,21 @@ All three are hosted on Google Fonts and loaded by `components/bundle.css`.
 
 ## Scoring
 
-The **share of players** who gave the same answer sets both the tier and the km:
+**The rarer the answer, the farther you fly.** Every valid answer has a fixed **rarity** score from 0 to 1, set before the flight from how well known it is (Wikipedia page views, or a hand-set override). It sets both the tier and the km:
 
 ```
-km = 5,725 × log(1/share) ÷ log(100)    capped at 5,725 per stop
+km = 5,725 × log(1/rarity) ÷ log(100)    capped at 5,725 per stop
 ```
 
-An answer given by 1% of players or fewer earns the 5,725 km cap. Half of players earns about 860 km, and 100% earns 0. Seven capped stops make 5,725 × 7 = 40,075 km, Earth's circumference.
+A rarity of 1% or less earns the 5,725 km cap. A rarity of 50% earns about 860 km, and 100% earns 0. Seven capped stops make 5,725 × 7 = 40,075 km, Earth's circumference.
+
+Never call the rarity a share of players. The live share of players who said the same answer is a separate, display-only stat, shown only once 20 players have answered a stop ("X% of players said it"). Below that, show "Not enough players yet".
 
 ## Answer tiers
 
 Each tier has its own stamp ink and a `-lit` version for dark surfaces. Tiers differ in lightness as well as hue, and always carry their name, so colour is never the only signal.
 
-| Tier | Ink | Share of players | km per stop |
+| Tier | Ink | Rarity | km per stop |
 | --- | --- | --- | --- |
 | Tourist | `tier-tourist` slate | 25% or more | up to ~1,700 |
 | Backpacker | `tier-backpacker` green | 10–25% | ~1,700–2,900 |
@@ -57,7 +59,7 @@ Each tier has its own stamp ink and a `-lit` version for dark surfaces. Tiers di
 | Uncharted | `tier-uncharted` plum | under 3% | ~4,400–5,725 |
 | Lost Luggage | `tier-lost` charcoal | wrong answer or the gate closed | 0 |
 
-The exact boundaries are 1,723 km (25%), 2,863 km (10%) and 4,359 km (3%). A stop exactly on a boundary takes the higher-share tier: 25% is Tourist, 10% is Backpacker, 3% is Explorer.
+The exact boundaries are 1,723 km (25%), 2,863 km (10%) and 4,359 km (3%). A stop exactly on a boundary takes the more common tier: 25% is Tourist, 10% is Backpacker, 3% is Explorer.
 
 ## Red-Eye badge
 
@@ -100,7 +102,7 @@ The seven screens are live cards under **Screens**, each at 390 × 844: Home, Ho
 
 ## Decided
 
-- **Km per stop:** the share-of-players formula above, capped at 5,725 km.
+- **Km per stop:** the rarity formula above, capped at 5,725 km.
 - **Tier bands:** Tourist 25%+, Backpacker 10–25%, Explorer 3–10%, Uncharted under 3%.
 - **Red-Eye:** a badge only, with no km. It shows on the answer reveal and the share card.
 - **Circumnavigation:** all 7 stops Uncharted.

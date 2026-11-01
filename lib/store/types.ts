@@ -7,6 +7,7 @@ export type PlayRow = {
   entity_id: string | null;
   served_at: string; // ISO
   answered_at: string | null;
+  /** Column `share`: the fixed rarity this play was scored with (not a crowd share). Null for Lost Luggage. */
   share: number | null;
   km: number | null;
   tier: Tier | null;
@@ -19,7 +20,8 @@ export type SubmitArgs = {
   stopIndex: number;
   entityId: string | null;
   correct: boolean;
-  prior: number;
+  /** Fixed rarity of the answer (rarityFor); sets km and tier. Ignored when not correct. */
+  rarity: number;
   redEye: boolean;
   answeredAt: string;
 };
@@ -29,7 +31,7 @@ export type StopCounts = { counts: Record<string, number>; correct: number; tota
 export interface Store {
   /** Insert the play row with served_at if it doesn't exist yet. Returns the row either way. */
   startStop(playerId: string, flightDate: string, stopIndex: number, servedAt: string): Promise<PlayRow>;
-  /** Atomically: count the answer, compute the share, lock in km/tier on the play. Idempotent once answered. */
+  /** Atomically: count the answer (display-only crowd stats) and lock in km/tier from the rarity. Idempotent once answered. */
   submit(a: SubmitArgs): Promise<PlayRow>;
   playsFor(playerId: string, flightDate: string): Promise<PlayRow[]>;
   allPlays(playerId: string): Promise<PlayRow[]>;

@@ -1,6 +1,6 @@
 # Off the Map — Build Spec
 
-A mobile-first daily geography trivia game. Everyone gets the same 7 prompts ("stops") each day. Players type one answer per stop before a 20-second gate closes. Rare answers earn more kilometres. A perfect game is 40,075 km (Earth's circumference).
+A mobile-first daily geography trivia game. Everyone gets the same 7 prompts ("stops") each day. Players type one answer per stop before a 20-second gate closes. The rarer the answer, the farther you fly. A perfect game is 40,075 km (Earth's circumference).
 
 **Launch target:** Flight #1 goes live Tuesday, Oct 27, 2026 at 12:00 AM ET.
 
@@ -37,7 +37,7 @@ The design previews contain **sample data** (scores, streaks, the 40,075 km samp
 
 Add one screen not in the design:
 
-8. **Yesterday** `/yesterday` — yesterday's 7 prompts with final answer shares and the rarest correct answers ("Only 0.4% said Tajikistan"). This is daily TikTok content, so make it screenshot-friendly using the same visual language.
+8. **Yesterday** `/yesterday` — yesterday's 7 prompts with final crowd shares and the rarest correct answers ("Only 0.4% said Tajikistan"), for every stop that at least 20 players answered. This is daily TikTok content, so make it screenshot-friendly using the same visual language.
 
 The whole game uses the single dark "terminal" theme in `tokens.json`. No light mode.
 
@@ -92,17 +92,15 @@ Fail the build if any stop:
 
 All scoring runs on the server. Port the formulas from `bundle.js` (`kmFor`, `tierFor`).
 
-### 1. Share
+### 1. Rarity (fixed)
 
-`share` is the fraction of **correct** answers to that stop that named the same answer. Wrong answers and timeouts don't count toward the denominator.
+Every valid answer has a fixed `rarity` between 0 and 1. It is the answer's Wikipedia prior (below), unless the flight file sets an override on the answer:
 
-Day 1 has no crowd data, so blend the crowd with a prior:
-
+```json
+{ "id": "TJ", "name": "Tajikistan", "prior": 0.04512, "rarity": 0.02 }
 ```
-crowd  = count_of_this_answer / total_correct_answers   (both include this player's answer)
-w      = total_correct_answers / (total_correct_answers + 200)
-share  = w × crowd + (1 − w) × prior
-```
+
+`npm run check-flights` fails if an override isn't `0 < rarity ≤ 1`. The rarity alone sets the score. How many other players gave the same answer never changes anyone's km or tier. The rarer the answer, the farther you fly.
 
 ### 2. Prior (`npm run priors`)
 
@@ -117,14 +115,14 @@ The square root flattens the gap between famous and obscure answers so obscure o
 ### 3. Kilometres and tier
 
 ```
-km   = round(min(5725, 5725 × ln(1/share) / ln(100)))
-tier = share ≥ 25% → Tourist
-       share ≥ 10% → Backpacker
-       share ≥ 3%  → Explorer
-       otherwise   → Uncharted
+km   = round(min(5725, 5725 × ln(1/rarity) / ln(100)))
+tier = rarity ≥ 25% → Tourist
+       rarity ≥ 10% → Backpacker
+       rarity ≥ 3%  → Explorer
+       otherwise    → Uncharted
 ```
 
-| Tier | Share | km per stop |
+| Tier | Rarity | km per stop |
 |---|---|---|
 | Tourist | 25%+ | up to 1,723 |
 | Backpacker | 10–25% | 1,723–2,863 |
@@ -138,13 +136,23 @@ tier = share ≥ 25% → Tourist
 
 ### 4. Lock-in
 
-A player's km and tier are **locked at the moment they submit** and stored with the play. Their score never changes after that, even as shares shift later in the day. The Yesterday page shows the final shares once a flight closes.
+A player's km and tier are **computed on the server and locked at the moment they submit**, and stored with the play (`plays.share` holds the rarity it was scored with). Their score never changes after that.
+
+### 5. Live crowd (display only)
+
+The server still counts how many players gave each answer. The **crowd share** is `count_of_this_answer / total_correct_answers` (wrong answers and timeouts don't count toward the denominator). It is a stat, never the score.
+
+Crowd stats stay hidden until **at least 20 players** have answered that stop (right, wrong or timed out). Until then, the reveal shows "Not enough players yet" in place of the percentage and in place of the "What the terminal said" distribution, and Yesterday does the same for that stop.
+
+- **Answer reveal:** the tier comes from rarity. "X% of players said it" appears separately, only once the threshold is met.
+- **Yesterday:** real crowd shares ("Only 0.4% said Tajikistan") for stops that met the threshold.
 
 ### Unit tests (required)
 
 - `kmFor(0.40) ≈ 1,139`, `kmFor(0.05) = 3,724`, `kmFor(0.02) = 4,863`, `kmFor(0.01) = 5,725`, `kmFor(0.001) = 5,725`.
 - Tier boundaries: 25% → Tourist, 10% → Backpacker, 3% → Explorer.
-- Blend: with 1 correct answer, `share` is about 99.5% prior; with 2,000 it's about 91% crowd.
+- Fixed rarity: the same answer scores the same no matter how many other players answered; a `rarity` override changes the score.
+- Crowd stats are hidden under 20 answers and equal `count / correct` at 20 or more.
 - Late submission rejected; Red-Eye awarded at 3.0 s left, not at 3.1 s.
 
 ## API
@@ -153,12 +161,12 @@ A player's km and tier are **locked at the moment they submit** and stored with 
 |---|---|
 | `GET /api/flight/today` | Flight number, date, number of stops, the player's progress. No prompts or answers. |
 | `POST /api/stop/start` `{ stop }` | Returns that stop's `board`, `category`, `pool`; records the server start time. |
-| `POST /api/stop/answer` `{ stop, entityId }` | Judges the answer, updates counts atomically, returns tier, km, share, Red-Eye, and the top 4 answers with shares. |
+| `POST /api/stop/answer` `{ stop, entityId }` | Judges the answer, locks in tier and km from the fixed rarity, updates the crowd counts atomically, returns tier, km, rarity, Red-Eye, and (once 20 players have answered the stop) the top 4 answers with crowd shares. |
 | `GET /api/results/today` | The player's 7 stops, total km, best answer, share-card data. |
-| `GET /api/yesterday` | Final shares for every answer of yesterday's flight. |
+| `GET /api/yesterday` | Final crowd shares for every answer of yesterday's flight (stops with 20+ answers only). |
 | `GET /api/logbook` | The player's streak, longest trip, Circumnavigations, last 14 flights, tier history. |
 
-Use a Postgres function for the answer so the count increment and the share calculation happen in one transaction.
+Use a Postgres function for the answer so the count increment and the score lock-in happen in one transaction.
 
 ## Database (Supabase)
 
@@ -166,7 +174,7 @@ Use a Postgres function for the answer so the count increment and the share calc
 - `stops` — `flight_date`, `stop_index`, prompt fields, `answers` (jsonb with priors)
 - `answer_counts` — `flight_date`, `stop_index`, `entity_id`, `count` — pk on all three but count
 - `stop_totals` — `flight_date`, `stop_index`, `correct_count`, `total_count`
-- `plays` — `player_id`, `flight_date`, `stop_index`, `entity_id` (nullable), `served_at`, `answered_at`, `share`, `km`, `tier`, `red_eye` — unique on `(player_id, flight_date, stop_index)`
+- `plays` — `player_id`, `flight_date`, `stop_index`, `entity_id` (nullable), `served_at`, `answered_at`, `share` (the fixed rarity it was scored with), `km`, `tier`, `red_eye` — unique on `(player_id, flight_date, stop_index)`
 
 Enable row-level security; only the server (service role) writes.
 

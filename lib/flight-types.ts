@@ -1,6 +1,7 @@
 import { isPoolName, poolEntry, type PoolName } from '@/lib/pools';
 
-export type Answer = { id: string; name: string; aliases?: string[]; prior?: number };
+/** `prior` comes from `npm run priors`. `rarity`, if set, overrides it as the answer's fixed scoring rarity. */
+export type Answer = { id: string; name: string; aliases?: string[]; prior?: number; rarity?: number };
 export type Stop = {
   id: string;
   prompt: string;
@@ -35,6 +36,9 @@ export function validateFlight(f: Flight, expectedNumber?: number): { errors: st
       if (seen.has(a.id)) errors.push(`${at}: answer id ${a.id} repeated`);
       seen.add(a.id);
       const e = poolEntry(s.pool, a.id);
+      if (a.rarity !== undefined && !(typeof a.rarity === 'number' && a.rarity > 0 && a.rarity <= 1)) {
+        errors.push(`${at}: rarity for ${a.id} is ${JSON.stringify(a.rarity)} (must be > 0 and <= 1)`);
+      }
       if (!e) { errors.push(`${at}: answer id ${a.id} (${a.name}) is not in pool "${s.pool}"`); continue; }
       for (const al of a.aliases ?? []) {
         if (al !== e.name && !(e.aliases ?? []).includes(al)) warnings.push(`${at}: alias "${al}" for ${a.id} is not in the ${s.pool} pool, so typed answers won't match it`);
@@ -52,6 +56,13 @@ export function priorFor(stop: Stop, entityId: string): number {
   if (!a) return 0;
   if (stop.answers.every((x) => typeof x.prior === 'number')) return a.prior!;
   return 1 / stop.answers.length;
+}
+
+/** The fixed rarity that scores an answer: the flight file's override, else the Wikipedia prior. 0 if not a valid answer. */
+export function rarityFor(stop: Stop, entityId: string): number {
+  const a = stop.answers.find((x) => x.id === entityId);
+  if (!a) return 0;
+  return a.rarity ?? priorFor(stop, entityId);
 }
 
 /** "Name a country bordering China" → "Country bordering China" */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { blendShare, distancePhrase, judgeTiming, kmFor, pct, shareText, tierFor, type StopScore } from '@/lib/scoring';
+import { crowdShare, CROWD_MIN, distancePhrase, judgeTiming, kmFor, pct, shareText, tierFor, type StopScore } from '@/lib/scoring';
 
 describe('kmFor', () => {
   it('matches the spec values', () => {
@@ -33,20 +33,17 @@ describe('tierFor', () => {
   });
 });
 
-describe('blendShare', () => {
-  it('is ~99.5% prior with 1 correct answer', () => {
-    // crowd = 1 (the only answer), prior = 0.1; recover the weight on the prior
-    const s = blendShare(1, 1, 0.1);
-    const crowdWeight = (s - 0.1) / (1 - 0.1);
-    expect(1 - crowdWeight).toBeCloseTo(0.995, 3);
+describe('crowdShare', () => {
+  it('is hidden below 20 answers', () => {
+    expect(CROWD_MIN).toBe(20);
+    expect(crowdShare(5, 10, 19)).toBeNull();
   });
-  it('is ~91% crowd with 2,000 correct answers', () => {
-    const s = blendShare(400, 2000, 0.05); // crowd = 0.2
-    const crowdWeight = (s - 0.05) / (0.2 - 0.05);
-    expect(crowdWeight).toBeCloseTo(0.909, 3);
+  it('is count ÷ correct answers from 20 answers on', () => {
+    expect(crowdShare(5, 10, 20)).toBe(0.5);
+    expect(crowdShare(1, 250, 300)).toBe(0.004);
   });
-  it('falls back to the prior with no answers', () => {
-    expect(blendShare(0, 0, 0.07)).toBe(0.07);
+  it('is 0 when nobody answered correctly', () => {
+    expect(crowdShare(0, 0, 25)).toBe(0);
   });
 });
 

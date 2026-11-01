@@ -1,5 +1,6 @@
-/* Scoring — ported from design/components/bundle.js (kmFor, tierFor) plus the blend and timing rules in BUILD_SPEC.
-   The Postgres function in supabase/migrations mirrors kmFor/tierFor/blendShare; keep the two in sync. */
+/* Scoring — ported from design/components/bundle.js (kmFor, tierFor) plus the timing rules in BUILD_SPEC.
+   Each answer's km and tier come from its fixed rarity (see rarityFor); the live crowd is display-only.
+   The Postgres functions in supabase/migrations mirror kmFor/tierFor; keep the two in sync. */
 import { toUnit, type Unit } from '@/lib/units';
 
 export const MAX_STOP = 5725;
@@ -9,8 +10,8 @@ export const STOPS_PER_FLIGHT = 7;
 export const GATE_MS = 20_000;
 export const GRACE_MS = 1_500;
 export const RED_EYE_MS = 3_000;
-/** Crowd weight: w = n / (n + PRIOR_WEIGHT). */
-export const PRIOR_WEIGHT = 200;
+/** Crowd stats stay hidden until this many players have answered a stop. */
+export const CROWD_MIN = 20;
 
 export type Tier = 'tourist' | 'backpacker' | 'explorer' | 'uncharted' | 'lost';
 
@@ -24,22 +25,20 @@ export const TIERS: Record<Tier, { name: string; cls: string; emoji: string }> =
 /** Red-Eye is a badge, not a tier: correct answer with 3 seconds or less left. No km. */
 export const REDEYE = { name: 'Red-Eye', cls: 't-redeye', emoji: '⏰' };
 
-/** km = round(min(5725, 5725 × ln(1/share) / ln(100))) */
-export function kmFor(share: number): number {
-  if (!(share > 0)) return MAX_STOP;
-  return Math.round(Math.min(MAX_STOP, Math.max(0, (MAX_STOP * Math.log(1 / share)) / Math.log(100))));
+/** km = round(min(5725, 5725 × ln(1/rarity) / ln(100))) */
+export function kmFor(rarity: number): number {
+  if (!(rarity > 0)) return MAX_STOP;
+  return Math.round(Math.min(MAX_STOP, Math.max(0, (MAX_STOP * Math.log(1 / rarity)) / Math.log(100))));
 }
 
-export function tierFor(share: number): Exclude<Tier, 'lost'> {
-  return share >= 0.25 ? 'tourist' : share >= 0.1 ? 'backpacker' : share >= 0.03 ? 'explorer' : 'uncharted';
+export function tierFor(rarity: number): Exclude<Tier, 'lost'> {
+  return rarity >= 0.25 ? 'tourist' : rarity >= 0.1 ? 'backpacker' : rarity >= 0.03 ? 'explorer' : 'uncharted';
 }
 
-/** Blend the crowd share with the Wikipedia prior. Both counts include this player's answer. */
-export function blendShare(count: number, totalCorrect: number, prior: number): number {
-  if (totalCorrect <= 0) return prior;
-  const crowd = count / totalCorrect;
-  const w = totalCorrect / (totalCorrect + PRIOR_WEIGHT);
-  return w * crowd + (1 - w) * prior;
+/** Real crowd share (count ÷ correct answers), or null while fewer than CROWD_MIN players have answered the stop. */
+export function crowdShare(count: number, correct: number, answered: number): number | null {
+  if (answered < CROWD_MIN) return null;
+  return correct > 0 ? count / correct : 0;
 }
 
 export type Timing = { elapsedMs: number; leftMs: number; late: boolean; redEyeWindow: boolean };

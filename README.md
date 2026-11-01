@@ -1,6 +1,6 @@
 # Off the Map
 
-Daily geography trivia. 7 stops, 20 seconds each, and rare answers travel farther. See `BUILD_SPEC.md` for the rules and `design/` for the brand book.
+Daily geography trivia. 7 stops, 20 seconds each, and the rarer the answer, the farther you fly. See `BUILD_SPEC.md` for the rules and `design/` for the brand book.
 
 ## Run locally
 
@@ -21,7 +21,7 @@ OTM_TODAY_OVERRIDE=2026-10-27 npm run dev
 
 | Command | Does |
 |---|---|
-| `npm test` | Unit tests: scoring, tiers, blend, timing / Red-Eye, answer matching, flight validation, game flow |
+| `npm test` | Unit tests: scoring, tiers, fixed rarity, crowd threshold, timing / Red-Eye, answer matching, flight validation, game flow |
 | `npm run check-flights` | Validates every `data/flights/*.json` file (runs before every `npm run build`) |
 | `npm run priors [YYYY-MM-DD]` | Fetches 12 months of Wikipedia pageviews and writes `prior` onto each answer. Set `PRIORS_CONTACT` to your site or email (Wikimedia asks for a contact in the User-Agent). |
 | `npm run relaunch -- --launch YYYY-MM-DD` | Moves Flight #1 to a new date and re-dates every flight file (writes `data/launch.json`). Commit and deploy afterwards. |
@@ -53,7 +53,7 @@ Beta players keep their anonymous ID cookie, but their plays, streaks and logboo
 
 ## Layout
 
-- `lib/scoring.ts`: `kmFor`, `tierFor`, blend, timing. The SQL function `otm_submit_answer` mirrors these formulas; keep the two in sync.
+- `lib/scoring.ts`: `kmFor`, `tierFor`, `crowdShare`, timing. Scores come from each answer's fixed rarity (`rarityFor` in `lib/flight-types.ts`); the crowd is display-only. The SQL function `otm_submit_answer` (latest in `supabase/migrations/0002_fixed_rarity.sql`) mirrors these formulas; keep the two in sync.
 - `lib/game.ts`: server rules (judging, lock-in, resume / abandon, results, Yesterday, logbook) on top of a `Store` (Supabase or local).
 - `app/api/*`: the six routes from the spec, plus `/api/share-image` (PNG share card).
 - `components/`: typed ports of the design bundle (`SplitFlap`, `PassportStamp`, `GateTimer`, `BoardingPass`, `LuggageTag`) and the screens.

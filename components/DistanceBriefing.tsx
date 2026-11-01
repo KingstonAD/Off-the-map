@@ -19,10 +19,10 @@ export function DistanceBriefing() {
   const d = (km: number) => dist(km, unit);
   const b25 = d(kmFor(0.25)), b10 = d(kmFor(0.1)), b3 = d(kmFor(0.03));
   const tierRows = [
-    { t: 'tourist', l: 'T', name: 'Tourist', share: '25%+ said it', km: `up to ${b25}` },
-    { t: 'backpacker', l: 'B', name: 'Backpacker', share: '10–25%', km: `${b25}–${b10}` },
-    { t: 'explorer', l: 'E', name: 'Explorer', share: '3–10%', km: `${b10}–${b3}` },
-    { t: 'uncharted', l: 'U', name: 'Uncharted', share: 'Under 3%', km: `${b3}–${d(MAX_STOP)}` },
+    { t: 'tourist', l: 'T', name: 'Tourist', share: 'Rarity 25%+ · common', km: `up to ${b25}` },
+    { t: 'backpacker', l: 'B', name: 'Backpacker', share: 'Rarity 10–25%', km: `${b25}–${b10}` },
+    { t: 'explorer', l: 'E', name: 'Explorer', share: 'Rarity 3–10%', km: `${b10}–${b3}` },
+    { t: 'uncharted', l: 'U', name: 'Uncharted', share: 'Rarity under 3%', km: `${b3}–${d(MAX_STOP)}` },
     { t: 'lost', l: 'L', name: 'Lost Luggage', share: 'Wrong or gate closed', km: '0' },
     { t: 'redeye', l: 'R', name: 'Red-Eye badge', share: 'Correct in the last 3 seconds', km: `No ${unit}` },
   ] as const;
@@ -53,7 +53,7 @@ export function DistanceBriefing() {
       </div>
 
       <div className="otm-passport" style={{ paddingBottom: 9 }}>
-        <div className="pp-head"><span>Stamp tier · share of players</span><span>{U} per stop</span></div>
+        <div className="pp-head"><span>Stamp tier · rarity score</span><span>{U} per stop</span></div>
         <div style={{ padding: '6px 12px 0' }}>
           {tierRows.map((t, i) => {
             const badge = t.t === 'redeye';
@@ -68,7 +68,7 @@ export function DistanceBriefing() {
           })}
         </div>
         <div style={{ margin: '8px 12px 0', paddingTop: 7, borderTop: '1px dashed var(--paper-200)', font: '600 9.5px/1 var(--font-mono)', letterSpacing: '.06em', color: 'var(--paper-muted)', textAlign: 'center' }}>
-          {U} = {d(MAX_STOP)} × LOG(1/SHARE) ÷ LOG(100) · MAX {d(MAX_STOP)}
+          {U} = {d(MAX_STOP)} × LOG(1/RARITY) ÷ LOG(100) · MAX {d(MAX_STOP)}
         </div>
       </div>
     </>

@@ -27,7 +27,7 @@ export default function Page() {
           ['Stops', '7 PROMPTS', 'Same for everyone, every day'],
           ['Gate time', '20 SEC', 'Per stop. Then the gate shuts'],
           ['Carry-on', '1 ANSWER', 'No changes once it’s stamped'],
-          ['Mileage', 'RARE = FAR', 'The fewer who said it, the farther'],
+          ['Mileage', 'RARE = FAR', 'The rarer the answer, the farther you fly'],
         ].map(([k, v, note], i) => (
           <div key={k} style={cell(i % 2 === 0, i < 2)}>
             <div className="otm-label">{k}</div>
@@ -38,7 +38,10 @@ export default function Page() {
       </div>
 
       <p className="otm-body" style={{ fontSize: 14, lineHeight: '20px' }}>
-        Pick your answer from the list as you type. Your distance is locked in the moment you stamp it.
+        Pick your answer from the list as you type. Every valid answer has a fixed rarity score, set before the flight, so
+        the rarer the answer, the farther you fly. Your distance is locked in the moment you stamp it. Once 20 players
+        have answered a stop, you’ll also see what share of players said the same thing. That’s for bragging rights only
+        and never changes your score.
       </p>
 
       <DistanceBriefing />

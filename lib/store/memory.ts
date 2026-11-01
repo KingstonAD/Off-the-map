@@ -1,6 +1,6 @@
 /* In-process store for local dev and tests when Supabase isn't configured.
-   Mirrors otm_submit_answer() in supabase/migrations/0001_init.sql. */
-import { blendShare, kmFor, tierFor } from '@/lib/scoring';
+   Mirrors otm_submit_answer() in supabase/migrations (latest: 0002_fixed_rarity.sql). */
+import { kmFor, tierFor } from '@/lib/scoring';
 import type { PlayRow, StopCounts, Store, SubmitArgs } from './types';
 
 export type Data = {
@@ -41,12 +41,10 @@ export function createMemoryStore(data: Data = emptyData(), onWrite?: (d: Data) 
       if (a.correct && a.entityId) {
         t.correct += 1;
         const ck = `${tk}|${a.entityId}`;
-        const c = (data.counts.get(ck) ?? 0) + 1;
-        data.counts.set(ck, c);
-        const share = blendShare(c, t.correct, a.prior);
-        row.share = share;
-        row.km = kmFor(share);
-        row.tier = tierFor(share);
+        data.counts.set(ck, (data.counts.get(ck) ?? 0) + 1);
+        row.share = a.rarity;
+        row.km = kmFor(a.rarity);
+        row.tier = tierFor(a.rarity);
         row.red_eye = a.redEye;
       } else {
         row.share = null;

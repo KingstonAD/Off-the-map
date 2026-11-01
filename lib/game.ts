@@ -1,10 +1,10 @@
 /* Server-side game rules. Everything that judges, scores or reveals answers lives here, on top of a Store. */
 import type { Flight, Stop } from '@/lib/flight-types';
-import { priorFor, shortPrompt } from '@/lib/flight-types';
+import { rarityFor, shortPrompt } from '@/lib/flight-types';
 import { poolEntry } from '@/lib/pools';
 import {
-  blendShare, distancePhrase, GATE_MS, GRACE_MS, isCircumnavigation, judgeTiming, STOPS_PER_FLIGHT,
-  type Tier,
+  crowdShare, CROWD_MIN, distancePhrase, GATE_MS, GRACE_MS, isCircumnavigation, judgeTiming, kmFor, STOPS_PER_FLIGHT,
+  tierFor, type Tier,
 } from '@/lib/scoring';
 import { addDays, flightNumberFor } from '@/lib/time';
 import type { PlayRow, StopCounts, Store } from '@/lib/store/types';
@@ -25,7 +25,7 @@ async function finalizeExpired(store: Store, rows: PlayRow[], now: number): Prom
     if (!answered(r) && now - ms(r.served_at) > GATE_MS + GRACE_MS) {
       out.push(await store.submit({
         playerId: r.player_id, flightDate: r.flight_date, stopIndex: r.stop_index, entityId: null,
-        correct: false, prior: 0, redEye: false, answeredAt: new Date(ms(r.served_at) + GATE_MS).toISOString(),
+        correct: false, rarity: 0, redEye: false, answeredAt: new Date(ms(r.served_at) + GATE_MS).toISOString(),
       }));
     } else out.push(r);
   }
@@ -95,15 +95,27 @@ function nameOf(stop: Stop, id: string | null): string | null {
   return poolEntry(stop.pool, id)?.name ?? stop.answers.find((a) => a.id === id)?.name ?? id;
 }
 
-/** Current blended share for every valid answer of a stop, highest first. */
-export function answerShares(stop: Stop, c: StopCounts | undefined) {
-  const counts = c?.counts ?? {}, correct = c?.correct ?? 0;
-  return stop.answers
+/** Every valid answer of a stop with its fixed score and its live crowd count, most-said first.
+    `share` is the real crowd share, null until CROWD_MIN players have answered the stop. */
+export function crowdStats(stop: Stop, c: StopCounts | undefined) {
+  const counts = c?.counts ?? {}, correct = c?.correct ?? 0, answered = c?.total ?? 0;
+  const answers = stop.answers
     .map((a) => {
       const count = counts[a.id] ?? 0;
-      return { id: a.id, name: nameOf(stop, a.id)!, count, share: blendShare(count, correct, priorFor(stop, a.id)) };
+      const rarity = rarityFor(stop, a.id);
+      return { id: a.id, name: nameOf(stop, a.id)!, count, share: crowdShare(count, correct, answered), rarity, km: kmFor(rarity), tier: tierFor(rarity) };
     })
-    .sort((a, b) => b.share - a.share || a.name.localeCompare(b.name));
+    .sort((a, b) => b.count - a.count || b.rarity - a.rarity || a.name.localeCompare(b.name));
+  return { ready: answered >= CROWD_MIN, answered, correct, answers };
+}
+
+/** The crowd panel for a reveal: null until the stop has CROWD_MIN answers, so no counts leak early. */
+function crowdPanel(stop: Stop, c: StopCounts | undefined, entityId: string | null) {
+  const s = crowdStats(stop, c);
+  if (!s.ready) return null;
+  const pick = ({ id, name, share, km, tier }: (typeof s.answers)[number]) => ({ id, name, share: share!, km, tier });
+  const yours = entityId ? s.answers.find((a) => a.id === entityId) : undefined;
+  return { answered: s.answered, top: s.answers.slice(0, 4).map(pick), yours: yours ? pick(yours) : null };
 }
 
 export async function answerStop(
@@ -129,7 +141,7 @@ export async function answerStop(
       playerId, flightDate: date, stopIndex,
       entityId: late ? null : entityId,
       correct,
-      prior: correct ? priorFor(stop, entityId!) : 0,
+      rarity: correct ? rarityFor(stop, entityId!) : 0,
       redEye: correct && t.redEyeWindow,
       answeredAt: new Date(late ? ms(row.served_at) + GATE_MS : now).toISOString(),
     });
@@ -138,24 +150,24 @@ export async function answerStop(
   }
 
   const counts = (await store.counts(date))[stopIndex];
-  const shares = answerShares(stop, counts);
   const all = await store.playsFor(playerId, date);
+  const correct = row.tier !== 'lost';
   return {
     stop: stopIndex,
     flight: flight.flight,
     date,
     entityId: row.entity_id,
     name: nameOf(stop, row.entity_id),
-    correct: row.tier !== 'lost',
+    correct,
     timedOut: row.tier === 'lost' && row.entity_id === null,
     late,
     tier: row.tier!,
     km: row.km ?? 0,
-    share: row.share,
+    rarity: row.share, // the fixed rarity this play was scored with
     redEye: row.red_eye,
     leftMs: Math.max(0, leftMs),
-    top: shares.slice(0, 4).map(({ id, name, share }) => ({ id, name, share })),
-    yours: row.tier !== 'lost' ? shares.find((s) => s.id === row!.entity_id) ?? null : null,
+    /** Live crowd, display only. Null until CROWD_MIN players have answered this stop. */
+    crowd: crowdPanel(stop, counts, correct ? row.entity_id : null),
     totalKm: all.filter(answered).reduce((a, r) => a + (r.km ?? 0), 0),
     isLast: stopIndex === STOPS_PER_FLIGHT - 1,
   };
@@ -165,8 +177,11 @@ export async function results(store: Store, load: FlightLoader, playerId: string
   const flight = load(date);
   if (!flight) return null;
   const rows = (await finalizeExpired(store, await store.playsFor(playerId, date), now)).filter(answered);
+  const counts = await store.counts(date);
   const stops = flight.stops.map((s, i) => {
     const r = rows.find((x) => x.stop_index === i);
+    const c = counts[i];
+    const mine = r && r.tier !== 'lost' && r.entity_id ? r.entity_id : null;
     return {
       stop: i,
       prompt: shortPrompt(s.prompt),
@@ -174,7 +189,9 @@ export async function results(store: Store, load: FlightLoader, playerId: string
       name: r ? nameOf(s, r.entity_id) : null,
       tier: (r?.tier ?? null) as Tier | null,
       km: r?.km ?? 0,
-      share: r?.share ?? null,
+      rarity: r?.share ?? null,
+      /** Real share of players who said the same, display only; null below CROWD_MIN answers. */
+      crowd: mine ? crowdShare(c?.counts[mine] ?? 0, c?.correct ?? 0, c?.total ?? 0) : null,
       redEye: r?.red_eye ?? false,
       answered: !!r,
     };
@@ -183,7 +200,7 @@ export async function results(store: Store, load: FlightLoader, playerId: string
   const totalKm = scored.reduce((a, s) => a + s.km, 0);
   const best = stops
     .filter((s) => s.tier && s.tier !== 'lost')
-    .sort((a, b) => b.km - a.km || (a.share ?? 1) - (b.share ?? 1))[0] ?? null;
+    .sort((a, b) => b.km - a.km || (a.rarity ?? 1) - (b.rarity ?? 1))[0] ?? null;
   return {
     flight: flight.flight,
     date,
@@ -197,7 +214,7 @@ export async function results(store: Store, load: FlightLoader, playerId: string
   };
 }
 
-/** Yesterday shows the real crowd share (count ÷ correct answers), not the blended scoring share. */
+/** Yesterday shows the real crowd share (count ÷ correct answers) once a stop has CROWD_MIN answers. Tiers are the fixed ones. */
 export async function yesterday(store: Store, load: FlightLoader, today: string) {
   const date = addDays(today, -1);
   const flight = load(date);
@@ -207,22 +224,18 @@ export async function yesterday(store: Store, load: FlightLoader, today: string)
     flight: flight.flight,
     date,
     stops: flight.stops.map((s, i) => {
-      const correct = counts[i]?.correct ?? 0;
-      const answers = s.answers
-        .map((a) => {
-          const count = counts[i]?.counts[a.id] ?? 0;
-          return { id: a.id, name: nameOf(s, a.id)!, count, share: correct ? count / correct : 0 };
-        })
-        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
-      const said = answers.filter((x) => x.count > 0);
+      const c = crowdStats(s, counts[i]);
+      const said = c.ready ? c.answers.filter((x) => x.count > 0) : [];
       return {
         stop: i,
         prompt: s.prompt,
         board: s.board,
         category: s.category,
-        travellers: counts[i]?.total ?? 0,
-        correct,
-        answers,
+        travellers: c.answered,
+        correct: c.correct,
+        ready: c.ready,
+        // Below the threshold, counts stay server-side too: /api/yesterday returns this object as-is.
+        answers: c.ready ? c.answers : c.answers.map((x) => ({ ...x, count: null })),
         rarest: said.length ? said[said.length - 1] : null,
       };
     }),

@@ -99,13 +99,13 @@ export function ResultsScreen() {
         {r.best ? (
           <>
             <Seal tier={r.best.tier!} rot={-10} style={{ width: 54, height: 54, fontSize: 11, lineHeight: '11px' }}>
-              <span>{pct(r.best.share ?? 0)}<small>said it</small></span>
+              <span>{dist(r.best.km, unit)}<small>{unit}</small></span>
             </Seal>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="otm-card-k" style={{ fontSize: 9.5, letterSpacing: '.16em' }}>BEST ANSWER OF THE DAY</div>
               <div style={{ font: '800 24px/26px var(--font-flap)', textTransform: 'uppercase', letterSpacing: '.04em', marginTop: 3 }}>{r.best.name}</div>
               <div style={{ font: '400 12px/14px var(--font-sans)', color: 'var(--paper-muted)' }}>
-                {r.best.prompt} · {TIERS[r.best.tier!].name} · {dist(r.best.km, unit)} {unit}
+                {r.best.prompt} · {TIERS[r.best.tier!].name}{r.best.crowd !== null ? ` · ${pct(r.best.crowd)} of players said it` : ''}
               </div>
             </div>
           </>
