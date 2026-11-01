@@ -95,7 +95,7 @@ export function HomeScreen() {
         </h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center', marginTop: 14 }}>
           <span style={{ height: 1, width: 40, background: 'var(--terminal-600)' }} />
-          <span className="otm-label">Travel far. Answer rare.</span>
+          <span className="otm-label">Don’t be a tourist.</span>
           <span style={{ height: 1, width: 40, background: 'var(--terminal-600)' }} />
         </div>
       </div>

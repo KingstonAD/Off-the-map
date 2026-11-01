@@ -1,22 +1,30 @@
 'use client';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { search, type PoolEntry, type PoolName } from '@/lib/pools';
+import { useEffect, useRef, useState } from 'react';
+import { normalize, resolve, type PoolEntry, type PoolName } from '@/lib/pools';
 
 type Props = {
   pool: PoolName;
   disabled: boolean;
-  /** Called with the picked pool entry. Free text can never be submitted. */
+  /** Called with a recognised pool entry. Text that isn't in the pool is never submitted. */
   onPick: (e: PoolEntry) => void;
 };
 
 const ROWS = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
 
-/** Answer field + autocomplete over the whole pool (never the valid answers) + the terminal keyboard on touch screens. */
+/** What the input is showing below the field: nothing, a "Did you mean" check, or a "not sure" note. */
+type Check = { kind: 'none' } | { kind: 'close'; options: PoolEntry[] } | { kind: 'unknown' };
+
+/**
+ * Free-text answer field + the terminal keyboard on touch screens. On Stamp / Enter the text is resolved against the
+ * whole pool (never the valid answers): an exact name or alias stamps at once, a near miss asks "Did you mean…?",
+ * and anything else asks the player to try again. None of it hints at what's correct, and the gate keeps closing.
+ */
 export function AnswerInput({ pool, disabled, onPick }: Props) {
   const [value, setValue] = useState('');
-  const [sel, setSel] = useState(0);
+  const [check, setCheck] = useState<Check>({ kind: 'none' });
   const [touch, setTouch] = useState(false);
   const input = useRef<HTMLInputElement>(null);
+  const firstChoice = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
@@ -24,20 +32,26 @@ export function AnswerInput({ pool, disabled, onPick }: Props) {
     if (!coarse) input.current?.focus();
   }, []);
 
-  const matches = useMemo(() => search(pool, value, touch ? 3 : 4), [pool, value, touch]);
-  const current = matches[Math.min(sel, matches.length - 1)];
+  // Keyboard players land on the first choice, so Enter answers "Yes".
+  useEffect(() => { if (check.kind === 'close') firstChoice.current?.focus(); }, [check]);
 
-  const type = (v: string) => { setValue(v); setSel(0); };
-  const pick = (e: PoolEntry | undefined) => {
-    if (!e || disabled) return;
+  const type = (v: string) => { setValue(v); setCheck({ kind: 'none' }); };
+  const pick = (e: PoolEntry) => {
+    if (disabled) return;
     setValue(e.name);
+    setCheck({ kind: 'none' });
     onPick(e);
   };
+  const back = () => {
+    setCheck({ kind: 'none' });
+    if (!touch) input.current?.focus();
+  };
 
-  const onKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'ArrowDown') { setSel((s) => Math.min(s + 1, matches.length - 1)); e.preventDefault(); }
-    else if (e.key === 'ArrowUp') { setSel((s) => Math.max(s - 1, 0)); e.preventDefault(); }
-    else if (e.key === 'Tab' && current) { setValue(current.entry.name); setSel(0); e.preventDefault(); }
+  const stamp = () => {
+    if (disabled || !normalize(value)) return;
+    const r = resolve(pool, value);
+    if (r.kind === 'exact') pick(r.entry);
+    else setCheck(r);
   };
 
   const tapKey = (k: string) => {
@@ -47,17 +61,14 @@ export function AnswerInput({ pool, disabled, onPick }: Props) {
 
   return (
     <>
-      <form className="otm-input" autoComplete="off" onSubmit={(e) => { e.preventDefault(); pick(current?.entry); }}>
+      <form className="otm-input" autoComplete="off" onSubmit={(e) => { e.preventDefault(); stamp(); }}>
         <input
           ref={input}
           value={value}
           onChange={(e) => type(e.target.value)}
-          onKeyDown={onKey}
           placeholder="Type your answer"
           aria-label="Your answer"
-          aria-autocomplete="list"
-          aria-controls="otm-suggest"
-          aria-activedescendant={current ? `sug-${current.entry.id}` : undefined}
+          aria-describedby="otm-check"
           spellCheck={false}
           autoCapitalize="characters"
           autoCorrect="off"
@@ -65,30 +76,28 @@ export function AnswerInput({ pool, disabled, onPick }: Props) {
           disabled={disabled}
           maxLength={40}
         />
-        <button className="go" type="submit" disabled={disabled || !current}>STAMP</button>
+        <button className="go" type="submit" disabled={disabled || !normalize(value)}>STAMP</button>
       </form>
-      <div className="otm-suggest" id="otm-suggest" role="listbox" aria-label="Suggestions" style={{ display: matches.length ? undefined : 'none' }}>
-        {matches.map((m, i) => {
-          const on = m === current;
-          return (
-            <button
-              key={m.entry.id}
-              id={`sug-${m.entry.id}`}
-              type="button"
-              role="option"
-              aria-selected={on}
-              className={on ? 'on' : ''}
-              onClick={() => pick(m.entry)}
-              disabled={disabled}
-            >
-              <span style={{ font: 'inherit', color: 'inherit', letterSpacing: 'inherit', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                <Highlight text={m.entry.name} query={m.via ? '' : value} />
-                {m.via && <span className="via">aka {m.via}</span>}
-              </span>
-              {on && <span>Return ↵</span>}
-            </button>
-          );
-        })}
+      <div id="otm-check" aria-live="polite">
+        {check.kind === 'close' && (
+          <div className="otm-suggest" role="group" aria-label="Confirm your answer">
+            {check.options.length === 1 ? (
+              <>
+                <div className="otm-ask">Did you mean <b>{check.options[0].name}</b>?</div>
+                <button ref={firstChoice} type="button" onClick={() => pick(check.options[0])} disabled={disabled}>Yes<span>Return ↵</span></button>
+              </>
+            ) : (
+              <>
+                <div className="otm-ask">Did you mean…</div>
+                {check.options.map((o, i) => (
+                  <button key={o.id} ref={i === 0 ? firstChoice : undefined} type="button" onClick={() => pick(o)} disabled={disabled}>{o.name}</button>
+                ))}
+              </>
+            )}
+            <button type="button" onClick={back} disabled={disabled}>No<span>Back to typing</span></button>
+          </div>
+        )}
+        {check.kind === 'unknown' && <p className="otm-note otm-unsure">Not sure what that is. Try again.</p>}
       </div>
       {touch && (
         <div className="otm-kb" aria-hidden="true">
@@ -103,13 +112,4 @@ export function AnswerInput({ pool, disabled, onPick }: Props) {
       )}
     </>
   );
-}
-
-/** Amber-marks the typed prefix, as in the design. */
-function Highlight({ text, query }: { text: string; query: string }) {
-  const q = query.trim();
-  if (q && text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').startsWith(q.toLowerCase())) {
-    return <><mark>{text.slice(0, q.length)}</mark>{text.slice(q.length)}</>;
-  }
-  return <>{text}</>;
 }

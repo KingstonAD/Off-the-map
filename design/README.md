@@ -8,6 +8,8 @@ The look is a vintage airport terminal: a dark concourse, an amber split-flap de
 
 The game talks like a gate agent with a sense of humour: short, uppercase on the board, calm in the copy.
 
+- The tagline is **"Don’t be a tourist."** It sits under the logo on Home. Tourist is the most common tier, so the line is a dare to go rarer.
+- Answer checks stay neutral and never hint at what's correct: **"Did you mean Chad?"** (Yes / No) for a near miss, **"Not sure what that is. Try again."** for anything unrecognised.
 - Board text (split-flap) is uppercase, at most 3 rows of 14 characters: `NAME A COUNTRY / BORDERING / CHINA`.
 - Labels read like printed ticket fields: `GATE CLOSING`, `DISTANCE FLOWN`, `NEXT FLIGHT IN`.
 - Travel words, used lightly: flight = the daily game, stop = a prompt, board = start, gate = timer, logbook = stats, travellers = players.

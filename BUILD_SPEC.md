@@ -29,7 +29,7 @@ The design previews contain **sample data** (scores, streaks, the 40,075 km samp
 
 1. **Home** `/` — split-flap logo, departures board, Board Now, countdown to next 12 AM ET flight, streak luggage tag.
 2. **How to Play** `/how-to-play` — rules, distance scale, tier table.
-3. **Gameplay** `/play` — split-flap prompt, gate timer, answer input with autocomplete, stop counter, running km.
+3. **Gameplay** `/play` — split-flap prompt, gate timer, free-text answer input with "Did you mean" check, stop counter, running km.
 4. **Answer reveal** (state inside `/play`) — passport stamp slam, km count-up, "what the terminal said" distribution, Red-Eye badge if earned.
 5. **Results** `/results` — plane route on globe, split-flap total, 7-stop breakdown, best answer of the day.
 6. **Share card** (sheet from Results) — boarding-pass card, 7 stamp-colour squares, copyable emoji text.
@@ -55,7 +55,7 @@ Each stop has:
 - `prompt` — full sentence shown to screen readers and on Yesterday.
 - `board` — up to **3 lines of at most 14 characters**, uppercase, shown on the split-flap board. Never break a word.
 - `category` — the label in the board header (e.g. "Countries", "US States").
-- `pool` — which autocomplete list to search (`country`, `us_state`; add `city` later).
+- `pool` — which list typed answers are matched against (`country`, `us_state`; add `city` later).
 - `answers` — every valid answer, each with an `id`, `name`, optional `aliases`.
 - `notes` — optional judgement calls (what's accepted and why).
 
@@ -70,9 +70,15 @@ Fail the build if any stop:
 
 ## Answering
 
-- **Autocomplete searches the whole pool**, not the valid answers. For `country` that's every country (~197); for `us_state` all 50 states. Never let autocomplete hint at what's correct.
-- Match on names and aliases, case- and accent-insensitive, prefix match first, then substring.
-- The player must **pick an entry** from autocomplete (tap, Enter, or Tab). Free text that matches nothing can't be submitted. This removes most spelling problems.
+- **No autocomplete.** Players type freely, then press **Stamp** or Enter. Nothing is suggested while they type.
+- On Stamp the text is **normalized**: case, accents, punctuation and spaces are ignored, `&` reads as "and", and a leading "the" is dropped ("The Gambia" = "gambia", "Côte d'Ivoire" = "cote d ivoire").
+- It is then matched against the **whole pool**, never the valid answers. For `country` that's every country (~197); for `us_state` all 50 states.
+  1. **Exact match** on any name or alias: stamped at once.
+  2. Otherwise **fuzzy match** (edit distance; swapping two adjacent letters counts as one edit). Allowed typos depend on the length of the name: **1** for short names (≤ 5 letters), **2** for medium (6–10), **3** for long (11+). The closest name is offered as **"Did you mean Chad?"** with **Yes** / **No**. If a second name is about as close (within one more edit), both are shown as buttons ("ira" → Iran, Iraq). Yes stamps that entry; No returns to the input with the text kept.
+  3. **Nothing close**: show "Not sure what that is. Try again." The stop is not used up; the player keeps typing.
+- None of these checks may hint at whether an answer is correct; they only ask what the player meant. The **gate timer keeps running** throughout.
+- A recognised entry that isn't a valid answer (a real country that doesn't fit the prompt) is stamped normally and judged **Lost Luggage**.
+- The server still rejects any submitted `entityId` that isn't in the stop's pool (`not_in_pool`).
 - One submission per stop. No changing an answer once it's stamped.
 - Answer lists are **never sent to the client** before a stop is answered. The server judges every answer.
 

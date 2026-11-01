@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import { addDays, LAUNCH_DATE } from '@/lib/time';
 import type { Flight } from '@/lib/flight-types';
 import { answerStop, GameError, getProgress, logbook, results, startStop, yesterday } from '@/lib/game';
+import { resolve } from '@/lib/pools';
 import { createMemoryStore } from '@/lib/store/memory';
 import type { Store } from '@/lib/store/types';
 
@@ -72,6 +73,15 @@ describe('game flow', () => {
   it('rejects entities outside the pool', async () => {
     await startStop(store, load, P, D1, 0, T0);
     await expect(answerStop(store, load, P, D1, 0, 'US-NY', T0 + 1000)).rejects.toThrow('not_in_pool');
+  });
+
+  it('stamps a recognised but wrong typed answer as Lost Luggage', async () => {
+    // Stop 1 asks for China's neighbours. France is in the pool, so "FRANCE" resolves and the server judges it.
+    const typed = resolve('country', 'FRANCE');
+    expect(typed).toMatchObject({ kind: 'exact', entry: { id: 'FR' } });
+    await startStop(store, load, P, D1, 0, T0);
+    const r = await answerStop(store, load, P, D1, 0, 'FR', T0 + 3000);
+    expect(r).toMatchObject({ entityId: 'FR', tier: 'lost', km: 0, correct: false });
   });
 
   it('turns an abandoned stop into Lost Luggage and resumes at the next one', async () => {

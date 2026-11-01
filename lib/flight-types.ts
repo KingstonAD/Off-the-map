@@ -37,7 +37,7 @@ export function validateFlight(f: Flight, expectedNumber?: number): { errors: st
       const e = poolEntry(s.pool, a.id);
       if (!e) { errors.push(`${at}: answer id ${a.id} (${a.name}) is not in pool "${s.pool}"`); continue; }
       for (const al of a.aliases ?? []) {
-        if (al !== e.name && !(e.aliases ?? []).includes(al)) warnings.push(`${at}: alias "${al}" for ${a.id} is not in the ${s.pool} pool, so autocomplete won't find it`);
+        if (al !== e.name && !(e.aliases ?? []).includes(al)) warnings.push(`${at}: alias "${al}" for ${a.id} is not in the ${s.pool} pool, so typed answers won't match it`);
       }
     }
     const priors = s.answers.map((a) => a.prior);

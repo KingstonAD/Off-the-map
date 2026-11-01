@@ -45,7 +45,11 @@ a.otm-icon-btn, a.otm-ghost { color: var(--ink-100); display: inline-grid; place
 .otm-kb button { flex: 0 1 31px; min-width: 0; height: 42px; border: 0; border-radius: 6px; background: var(--terminal-700); color: var(--ink-100); font: 600 15px/1 var(--font-sans); cursor: pointer; padding: 0; box-shadow: 0 1px 0 #000; touch-action: manipulation; }
 .otm-kb button.wide { flex: 0 1 46px; font-size: 12px; }
 .otm-kb button:active { background: var(--terminal-600); }
-.otm-suggest .via { font: 500 10px/1 var(--font-mono); letter-spacing: 0.1em; color: var(--ink-300); text-transform: none; margin-left: 8px; }
+.otm-suggest .otm-ask { padding: 12px 14px; font: 400 14px/18px var(--font-sans); color: var(--ink-300); }
+.otm-suggest .otm-ask b { font-weight: 600; color: var(--ink-100); }
+.otm-suggest button:focus-visible { outline: none; background: var(--terminal-700); }
+.otm-suggest button:disabled { opacity: 0.4; cursor: default; }
+.otm-unsure { margin: 8px 2px 0; }
 .otm-input .go:disabled { opacity: 0.4; cursor: default; }
 
 /* ---------- share sheet ---------- */

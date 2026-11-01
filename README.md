@@ -21,7 +21,7 @@ OTM_TODAY_OVERRIDE=2026-10-27 npm run dev
 
 | Command | Does |
 |---|---|
-| `npm test` | Unit tests: scoring, tiers, blend, timing / Red-Eye, autocomplete, flight validation, game flow |
+| `npm test` | Unit tests: scoring, tiers, blend, timing / Red-Eye, answer matching, flight validation, game flow |
 | `npm run check-flights` | Validates every `data/flights/*.json` file (runs before every `npm run build`) |
 | `npm run priors [YYYY-MM-DD]` | Fetches 12 months of Wikipedia pageviews and writes `prior` onto each answer. Set `PRIORS_CONTACT` to your site or email (Wikimedia asks for a contact in the User-Agent). |
 | `npm run relaunch -- --launch YYYY-MM-DD` | Moves Flight #1 to a new date and re-dates every flight file (writes `data/launch.json`). Commit and deploy afterwards. |
@@ -31,7 +31,7 @@ OTM_TODAY_OVERRIDE=2026-10-27 npm run dev
 ## Adding a flight
 
 1. Write `data/flights/YYYY-MM-DD.json` (same shape as `2026-10-27.json`; `flight` = days since 2026-10-27 + 1).
-2. Make sure every alias is also in `data/pools/*.json`, so autocomplete can find it. `check-flights` warns if one isn't.
+2. Make sure every alias is also in `data/pools/*.json`, so typed answers can match it. `check-flights` warns if one isn't.
 3. `npm run priors YYYY-MM-DD`, then `npm run check-flights`.
 4. Commit and deploy before 12 AM ET that day.
 
