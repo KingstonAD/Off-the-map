@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { prefersReducedMotion } from '@/lib/flap';
 import type { answerStop, getProgress, logbook, results, startStop } from '@/lib/game';
+import { isUnit, type Unit } from '@/lib/units';
 
 const KEY = 'otm_pid';
 
@@ -58,6 +59,33 @@ export function useCountUp(to: number, ms = 1600, from = 0, start = true): numbe
     return () => cancelAnimationFrame(raf.current);
   }, [to, ms, from, start]);
   return v;
+}
+
+const UNIT_KEY = 'otm_unit';
+const UNIT_EVENT = 'otm-unit';
+
+/** Saved choice, else miles for US English browsers, else km. */
+function readUnit(): Unit {
+  try { const u = localStorage.getItem(UNIT_KEY); if (isUnit(u)) return u; } catch {}
+  return typeof navigator !== 'undefined' && navigator.language === 'en-US' ? 'mi' : 'km';
+}
+
+/** The player's distance unit, shared across every mounted component. Starts as km on the server render. */
+export function useUnit(): [Unit, (u: Unit) => void] {
+  const [unit, setUnitState] = useState<Unit>('km');
+  useEffect(() => {
+    setUnitState(readUnit());
+    const sync = () => setUnitState(readUnit());
+    window.addEventListener(UNIT_EVENT, sync);
+    window.addEventListener('storage', sync);
+    return () => { window.removeEventListener(UNIT_EVENT, sync); window.removeEventListener('storage', sync); };
+  }, []);
+  const setUnit = (u: Unit) => {
+    try { localStorage.setItem(UNIT_KEY, u); } catch {}
+    setUnitState(u);
+    window.dispatchEvent(new Event(UNIT_EVENT));
+  };
+  return [unit, setUnit];
 }
 
 /** Word-wrap to board lines, never breaking a word. */

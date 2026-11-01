@@ -3,20 +3,22 @@ import { useEffect, useState } from 'react';
 import { BoardingPass } from '@/components/BoardingPass';
 import { PassportStamp, RedEyeBadge, Seal } from '@/components/PassportStamp';
 import { SplitFlap } from '@/components/SplitFlap';
-import { useCountUp, wrapBoard, type AnswerResp, type StartResp } from '@/lib/client';
+import { useCountUp, useUnit, wrapBoard, type AnswerResp, type StartResp } from '@/lib/client';
 import { prefersReducedMotion } from '@/lib/flap';
-import { fmt, kmFor, pct, STOPS_PER_FLIGHT, tierFor, TIERS } from '@/lib/scoring';
+import { dist, kmFor, pct, STOPS_PER_FLIGHT, tierFor, TIERS } from '@/lib/scoring';
 import { stampDate } from '@/lib/time';
 
 type Props = { r: AnswerResp; prompt: string; previous: StartResp['previous']; prevKm: number; onNext: () => void };
 
 const pad2 = (n: number) => String(n).padStart(2, '0');
 
-/** Answer reveal: the stamp slams, km counts up, a Red-Eye badge follows 450 ms later, then what the terminal said. */
+/** Answer reveal: the stamp slams, distance counts up, a Red-Eye badge follows 450 ms later, then what the terminal said. */
 export function RevealScreen({ r, prompt, previous, prevKm, onNext }: Props) {
   // 0 = nothing, 1 = stamp down (+shake), 2 = counting, 3 = Red-Eye badge
   const [stage, setStage] = useState(0);
   const [replay, setReplay] = useState(0);
+  const [unit] = useUnit();
+  const U = unit.toUpperCase();
 
   useEffect(() => {
     if (prefersReducedMotion()) { setStage(3); return; }
@@ -45,7 +47,7 @@ export function RevealScreen({ r, prompt, previous, prevKm, onNext }: Props) {
         <span className="otm-label amber">Stop {n}/{STOPS_PER_FLIGHT} · Stamped</span>
         <div style={{ textAlign: 'right' }}>
           <div className="otm-label">Travelled</div>
-          <div className="otm-km"><span>{fmt(total)}</span> KM</div>
+          <div className="otm-km"><span>{dist(total, unit)}</span> {U}</div>
         </div>
       </div>
 
@@ -79,7 +81,7 @@ export function RevealScreen({ r, prompt, previous, prevKm, onNext }: Props) {
               rot={[-7, 5, -4, 8, -9, 3, -6][r.stop % 7]}
               top={[`Stop ${pad2(n)}`, stampDate(r.date)]}
               answer={answer}
-              left={`+${fmt(r.km)} km`}
+              left={`+${dist(r.km, unit)} ${unit}`}
               right={lost ? (r.timedOut ? 'Gate closed' : 'Not on the list') : `${pct(r.share ?? 0)} said it`}
               slam={stage >= 1}
               style={{ opacity: stage >= 1 ? undefined : 0 }}
@@ -99,7 +101,7 @@ export function RevealScreen({ r, prompt, previous, prevKm, onNext }: Props) {
       <div className="otm-kv" style={{ alignItems: 'center' }}>
         <div>
           <div className="otm-label">Distance earned</div>
-          <div style={{ font: '800 40px/40px var(--font-flap)', color: 'var(--amber-500)', letterSpacing: '.02em' }}>+{fmt(earned)} KM</div>
+          <div style={{ font: '800 40px/40px var(--font-flap)', color: 'var(--amber-500)', letterSpacing: '.02em' }}>+{dist(earned, unit)} {U}</div>
         </div>
         <div style={{ textAlign: 'right' }}>
           <div className="otm-label">Players who said it</div>
@@ -110,13 +112,13 @@ export function RevealScreen({ r, prompt, previous, prevKm, onNext }: Props) {
       {r.redEye && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', border: '1px dashed var(--tier-redeye-lit)', borderRadius: 'var(--radius-card)' }}>
           <span className="otm-redeye-pill">&#9200; Red-Eye</span>
-          <span className="otm-note">Correct with {left} left. Badge only, no extra km.</span>
+          <span className="otm-note">Correct with {left} left. Badge only, no extra {unit}.</span>
         </div>
       )}
       {lost && (
         <div className="t-lost" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', border: '1px dashed var(--tier-lost-lit)', borderRadius: 'var(--radius-card)' }}>
           <span className="otm-note">
-            {r.timedOut ? 'The gate closed before you stamped an answer.' : `${answer} isn’t a valid answer for this stop.`} Lost Luggage, 0 km.
+            {r.timedOut ? 'The gate closed before you stamped an answer.' : `${answer} isn’t a valid answer for this stop.`} Lost Luggage, 0 {unit}.
           </span>
         </div>
       )}
@@ -130,7 +132,7 @@ export function RevealScreen({ r, prompt, previous, prevKm, onNext }: Props) {
               <span className="otm-row-name" style={{ width: 112, color: mine ? 'var(--amber-500)' : 'var(--ink-100)' }} title={d.name}>{d.name}</span>
               <span className="otm-bar"><span style={{ width: `${(d.share / max) * 100}%` }} /></span>
               <span className="otm-data" style={{ width: 40, textAlign: 'right', color: 'var(--ink-300)' }}>{pct(d.share)}</span>
-              <span className="otm-data" style={{ width: 50, textAlign: 'right' }}>{fmt(kmFor(d.share))}</span>
+              <span className="otm-data" style={{ width: 50, textAlign: 'right' }}>{dist(kmFor(d.share), unit)}</span>
             </div>
           );
         })}

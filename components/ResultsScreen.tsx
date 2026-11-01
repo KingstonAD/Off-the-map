@@ -7,10 +7,11 @@ import { Seal } from '@/components/PassportStamp';
 import { RouteGlobe } from '@/components/RouteGlobe';
 import { ShareSheet } from '@/components/ShareSheet';
 import { SplitFlap } from '@/components/SplitFlap';
-import { api, ApiError, type ResultsResp } from '@/lib/client';
-import { distancePhrase, fmt, pct, TIERS } from '@/lib/scoring';
+import { api, ApiError, useUnit, type ResultsResp } from '@/lib/client';
+import { dist, distancePhrase, pct, TIERS } from '@/lib/scoring';
+import type { Unit } from '@/lib/units';
 
-const fmtKm = (n: number) => `${fmt(n)} KM`.padStart(9, ' ');
+const fmtDist = (km: number, unit: Unit) => `${dist(km, unit)} ${unit.toUpperCase()}`.padStart(9, ' ');
 
 export function ResultsScreen() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export function ResultsScreen() {
   const [replay, setReplay] = useState(0);
   const [sharing, setSharing] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [unit] = useUnit();
 
   useEffect(() => {
     api<ResultsResp>('/api/results/today')
@@ -64,7 +66,7 @@ export function ResultsScreen() {
       </div>
 
       <div style={{ textAlign: 'center' }}>
-        <SplitFlap lines={[fmtKm(landed ? r.totalKm : km)]} cols={9} size="xl" mode={landed ? 'direct' : 'instant'} label={`${fmt(r.totalKm)} km`} />
+        <SplitFlap lines={[fmtDist(landed ? r.totalKm : km, unit)]} cols={9} size="xl" mode={landed ? 'direct' : 'instant'} label={`${dist(r.totalKm, unit)} ${unit}`} />
         <div className="otm-label" style={{ marginTop: 8 }}>{phrase}</div>
       </div>
 
@@ -87,7 +89,7 @@ export function ResultsScreen() {
               <span style={{ font: '600 9.5px/1 var(--font-mono)', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--lit)', width: 86 }}>
                 {t.name}{st.redEye && <><br /><span style={{ color: 'var(--tier-redeye-lit)' }}>+ Red-Eye</span></>}
               </span>
-              <span className="otm-data" style={{ width: 52, textAlign: 'right' }}>{fmt(st.km)}</span>
+              <span className="otm-data" style={{ width: 52, textAlign: 'right' }}>{dist(st.km, unit)}</span>
             </div>
           );
         })}
@@ -103,13 +105,13 @@ export function ResultsScreen() {
               <div className="otm-card-k" style={{ fontSize: 9.5, letterSpacing: '.16em' }}>BEST ANSWER OF THE DAY</div>
               <div style={{ font: '800 24px/26px var(--font-flap)', textTransform: 'uppercase', letterSpacing: '.04em', marginTop: 3 }}>{r.best.name}</div>
               <div style={{ font: '400 12px/14px var(--font-sans)', color: 'var(--paper-muted)' }}>
-                {r.best.prompt} · {TIERS[r.best.tier!].name} · {fmt(r.best.km)} km
+                {r.best.prompt} · {TIERS[r.best.tier!].name} · {dist(r.best.km, unit)} {unit}
               </div>
             </div>
           </>
         ) : (
           <>
-            <Seal tier="lost" rot={-10} style={{ width: 54, height: 54, fontSize: 11, lineHeight: '11px' }}><span>0<small>km</small></span></Seal>
+            <Seal tier="lost" rot={-10} style={{ width: 54, height: 54, fontSize: 11, lineHeight: '11px' }}><span>0<small>{unit}</small></span></Seal>
             <div style={{ flex: 1 }}>
               <div className="otm-card-k" style={{ fontSize: 9.5, letterSpacing: '.16em' }}>ALL BAGS LOST</div>
               <div style={{ font: '400 13px/17px var(--font-sans)', color: 'var(--paper-muted)', marginTop: 4 }}>No stamps this time. A new flight boards at 12 AM ET.</div>

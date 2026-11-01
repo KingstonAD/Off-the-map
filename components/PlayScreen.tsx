@@ -5,15 +5,16 @@ import { AnswerInput } from '@/components/AnswerInput';
 import { GateTimer } from '@/components/GateTimer';
 import { RevealScreen } from '@/components/RevealScreen';
 import { SplitFlap } from '@/components/SplitFlap';
-import { api, ApiError, type AnswerResp, type StartResp, type TodayResp } from '@/lib/client';
+import { api, ApiError, useUnit, type AnswerResp, type StartResp, type TodayResp } from '@/lib/client';
 import type { PoolEntry, PoolName } from '@/lib/pools';
-import { fmt, STOPS_PER_FLIGHT, type Tier } from '@/lib/scoring';
+import { dist, STOPS_PER_FLIGHT, type Tier } from '@/lib/scoring';
 
 type Phase = 'loading' | 'boarding' | 'submitting' | 'reveal' | 'error';
 
 export function PlayScreen() {
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>('loading');
+  const [unit] = useUnit();
   const [stop, setStop] = useState<StartResp | null>(null);
   const [reveal, setReveal] = useState<AnswerResp | null>(null);
   const [tiers, setTiers] = useState<(Tier | null)[]>(Array(STOPS_PER_FLIGHT).fill(null));
@@ -91,7 +92,7 @@ export function PlayScreen() {
         </div>
         <div style={{ textAlign: 'right' }}>
           <div className="otm-label">Travelled</div>
-          <div className="otm-km">{fmt(stop?.totalKm ?? 0)} KM</div>
+          <div className="otm-km">{dist(stop?.totalKm ?? 0, unit)} {unit.toUpperCase()}</div>
         </div>
       </div>
       <div className="otm-pip" aria-hidden="true">

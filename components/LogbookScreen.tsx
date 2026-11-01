@@ -2,13 +2,15 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { SplitFlap } from '@/components/SplitFlap';
-import { api, type LogbookResp } from '@/lib/client';
-import { CIRCUMFERENCE, fmt, TIERS, type Tier } from '@/lib/scoring';
+import { UnitToggle } from '@/components/UnitToggle';
+import { api, useUnit, type LogbookResp } from '@/lib/client';
+import { CIRCUMFERENCE, dist, TIERS, type Tier } from '@/lib/scoring';
 
 const ORDER: Tier[] = ['tourist', 'backpacker', 'explorer', 'uncharted', 'lost'];
 
 export function LogbookScreen() {
   const [l, setL] = useState<LogbookResp | null>(null);
+  const [unit] = useUnit();
   useEffect(() => { api<LogbookResp>('/api/logbook').then(setL).catch(() => {}); }, []);
 
   const hist = ORDER.map((t) => [t, l?.tierCounts[t] ?? 0] as const);
@@ -20,7 +22,7 @@ export function LogbookScreen() {
       <div className="otm-topbar">
         <Link className="otm-icon-btn" aria-label="Back" href="/">&#8592;</Link>
         <span className="otm-label amber">Pilot logbook</span>
-        <span style={{ width: 32 }} />
+        <UnitToggle />
       </div>
       <h1 className="otm-title">Logbook</h1>
 
@@ -32,7 +34,7 @@ export function LogbookScreen() {
         </div>
         <div className="otm-panel">
           <div className="otm-label">Longest trip</div>
-          <div className="otm-stat" style={{ color: 'var(--amber-500)' }}>{l?.longest ? fmt(l.longest.km) : '0'}<span style={{ fontSize: 16 }}> KM</span></div>
+          <div className="otm-stat" style={{ color: 'var(--amber-500)' }}>{l?.longest ? dist(l.longest.km, unit) : '0'}<span style={{ fontSize: 16 }}> {unit.toUpperCase()}</span></div>
           <div className="otm-label otm-sublabel" style={{ marginTop: 4 }}>{l?.longest ? `Flight #${l.longest.flight}` : 'No flights yet'}</div>
         </div>
         <div className="otm-panel">
@@ -48,22 +50,22 @@ export function LogbookScreen() {
         <div className="otm-panel">
           <div className="otm-label">Flights flown</div>
           <div className="otm-stat">{l?.flightsFlown ?? 0}</div>
-          <div className="otm-label otm-sublabel" style={{ marginTop: 4 }}>Avg {fmt(l?.avgKm ?? 0)} km</div>
+          <div className="otm-label otm-sublabel" style={{ marginTop: 4 }}>Avg {dist(l?.avgKm ?? 0, unit)} {unit}</div>
         </div>
       </div>
 
       <div className="otm-panel">
         <div className="otm-kv" style={{ marginBottom: 10 }}>
           <span className="otm-label">Last 14 flights</span>
-          <span className="otm-label">km</span>
+          <span className="otm-label">{unit}</span>
         </div>
         <div style={{ position: 'relative', height: 96, display: 'flex', alignItems: 'flex-end', gap: 5, borderBottom: '1px solid var(--terminal-600)' }}>
           <div style={{ position: 'absolute', left: 0, right: 0, top: 0, borderTop: '1px dashed var(--amber-700)' }} />
-          <span className="otm-label amber" style={{ position: 'absolute', right: 0, top: -14, fontSize: 8.5 }}>40,075</span>
+          <span className="otm-label amber" style={{ position: 'absolute', right: 0, top: -14, fontSize: 8.5 }}>{dist(CIRCUMFERENCE, unit)}</span>
           {(l?.last14 ?? []).map((f) => (
             <span
               key={f.flight}
-              title={`Flight #${f.flight}: ${fmt(f.km)} km${f.complete ? '' : ' (incomplete)'}`}
+              title={`Flight #${f.flight}: ${dist(f.km, unit)} ${unit}${f.complete ? '' : ' (incomplete)'}`}
               style={{ flex: '1 1 0', maxWidth: 22, height: `${Math.max(1, (f.km / CIRCUMFERENCE) * 100).toFixed(1)}%`, borderRadius: '2px 2px 0 0', background: f.today ? 'var(--amber-500)' : 'var(--amber-700)', boxShadow: f.today ? '0 0 10px rgba(255,181,46,.45)' : undefined, opacity: f.complete ? 1 : 0.5 }}
             />
           ))}

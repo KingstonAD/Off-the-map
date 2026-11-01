@@ -7,6 +7,7 @@ import { results } from '@/lib/game';
 import { load, playerId, store, today } from '@/lib/server';
 import { cardData } from '@/lib/share-card';
 import type { Tier } from '@/lib/scoring';
+import { isUnit } from '@/lib/units';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -44,10 +45,11 @@ function Barcode({ w, h }: { w: number; h: number }) {
   );
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   const r = await results(store(), load, await playerId(), today());
   if (!r || !r.complete) return NextResponse.json({ error: 'not_landed' }, { status: 404 });
-  const c = cardData(r);
+  const u = new URL(req.url).searchParams.get('u');
+  const c = cardData(r, '', isUnit(u) ? u : 'km');
   const W = 348;
 
   return new ImageResponse(
@@ -72,11 +74,11 @@ export async function GET() {
           <div style={{ display: 'flex', flexDirection: 'column', padding: `${px(2)}px ${px(16)}px 0` }}>
             <div style={label()}>DISTANCE FLOWN</div>
             <div style={{ display: 'flex', alignItems: 'baseline', fontFamily: 'Flap', fontWeight: 800, fontSize: px(64), lineHeight: 1 }}>
-              {c.totalText}<span style={{ fontSize: px(30), marginLeft: px(6) }}>KM</span>
+              {c.totalText}<span style={{ fontSize: px(30), marginLeft: px(6) }}>{c.unitText}</span>
             </div>
             <div style={{ ...label(10.5, 0.12), marginTop: px(2) }}>{c.line}</div>
           </div>
-          {/* route: 0 → 40,075 km, plane at total ÷ 40,075 */}
+          {/* route: 0 → once around the world, plane at total ÷ circumference */}
           <div style={{ display: 'flex', position: 'relative', margin: `${px(14)}px ${px(16)}px 0`, height: px(8) }}>
             <div style={{ display: 'flex', position: 'absolute', left: 0, right: 0, top: px(3), justifyContent: 'space-between', opacity: 0.6 }}>
               {Array.from({ length: 60 }, (_, i) => <div key={i} style={{ width: px(2), height: px(2), borderRadius: px(1), background: C.muted }} />)}
@@ -88,8 +90,8 @@ export async function GET() {
             </div>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: `${px(4)}px ${px(16)}px 0` }}>
-            <div style={label(8.5, 0.12)}>0 KM</div>
-            <div style={label(8.5, 0.12)}>40,075 KM</div>
+            <div style={label(8.5, 0.12)}>0 {c.unitText}</div>
+            <div style={label(8.5, 0.12)}>{c.circumferenceText} {c.unitText}</div>
           </div>
           {/* 7 stamp squares */}
           <div style={{ display: 'flex', justifyContent: 'center', padding: `${px(16)}px ${px(16)}px ${px(18)}px` }}>

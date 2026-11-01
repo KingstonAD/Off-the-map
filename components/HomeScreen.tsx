@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { BoardingPass } from '@/components/BoardingPass';
 import { LuggageTag } from '@/components/LuggageTag';
 import { SplitFlap } from '@/components/SplitFlap';
+import { UnitToggle } from '@/components/UnitToggle';
 import { api, type TodayResp } from '@/lib/client';
 import { STOPS_PER_FLIGHT } from '@/lib/scoring';
 import { addDays, boardDate, hms, longDate, secsToNextFlight } from '@/lib/time';
@@ -84,7 +85,10 @@ export function HomeScreen() {
     <main className="otm-screen" style={{ gap: 18 }}>
       <div className="otm-topbar">
         <span className="otm-label amber">Terminal OTM · Gate 1</span>
-        <Link className="otm-icon-btn" aria-label="Logbook" title="Logbook" href="/logbook">&#9636;</Link>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <UnitToggle />
+          <Link className="otm-icon-btn" aria-label="Logbook" title="Logbook" href="/logbook">&#9636;</Link>
+        </div>
       </div>
 
       <div style={{ textAlign: 'center', marginTop: 18 }}>

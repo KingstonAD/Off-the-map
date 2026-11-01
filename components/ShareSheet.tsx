@@ -1,13 +1,14 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
-import type { ResultsResp } from '@/lib/client';
+import { useUnit, type ResultsResp } from '@/lib/client';
 import { cardData } from '@/lib/share-card';
 import { TIERS } from '@/lib/scoring';
 
 /** Share sheet from Results: boarding-pass card, 7 stamp-colour squares, copyable spoiler-free text. */
 export function ShareSheet({ r, onClose }: { r: ResultsResp; onClose: () => void }) {
   const domain = r.domain || (typeof window !== 'undefined' ? window.location.host : '');
-  const c = useMemo(() => cardData(r, domain), [r, domain]);
+  const [unit] = useUnit();
+  const c = useMemo(() => cardData(r, domain, unit), [r, domain, unit]);
   const [copied, setCopied] = useState(false);
   const [shareLabel, setShareLabel] = useState('Share ↗');
   const [saveLabel, setSaveLabel] = useState('Save image');
@@ -16,12 +17,13 @@ export function ShareSheet({ r, onClose }: { r: ResultsResp; onClose: () => void
   // Print the PNG up front: Safari only allows navigator.share() straight from a tap, not after an await.
   useEffect(() => {
     let live = true;
-    fetch('/api/share-image', { cache: 'no-store' })
+    setPng(null);
+    fetch(`/api/share-image?u=${unit}`, { cache: 'no-store' })
       .then((res) => (res.ok ? res.blob() : null))
       .then((b) => { if (live) setPng(b); })
       .catch(() => {});
     return () => { live = false; };
-  }, []);
+  }, [unit]);
 
   useEffect(() => {
     const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -45,7 +47,7 @@ export function ShareSheet({ r, onClose }: { r: ResultsResp; onClose: () => void
       let blob = png;
       if (!blob) {
         setSaveLabel('Printing…');
-        const res = await fetch('/api/share-image', { cache: 'no-store' });
+        const res = await fetch(`/api/share-image?u=${unit}`, { cache: 'no-store' });
         if (!res.ok) throw new Error('image');
         blob = await res.blob();
         setPng(blob);
@@ -112,7 +114,7 @@ export function ShareCard({ c }: { c: ReturnType<typeof cardData> }) {
       </div>
       <div style={{ padding: '2px 16px 0' }}>
         <div className="otm-card-k">DISTANCE FLOWN</div>
-        <div style={{ font: '800 64px/62px var(--font-flap)', letterSpacing: '.01em' }}>{c.totalText}<span style={{ fontSize: 30, marginLeft: 6 }}>KM</span></div>
+        <div style={{ font: '800 64px/62px var(--font-flap)', letterSpacing: '.01em' }}>{c.totalText}<span style={{ fontSize: 30, marginLeft: 6 }}>{c.unitText}</span></div>
         <div style={{ font: '500 10.5px/1 var(--font-mono)', letterSpacing: '.12em', color: 'var(--paper-muted)', marginTop: 2 }}>{c.line}</div>
       </div>
       <div style={{ position: 'relative', margin: '14px 16px 0', height: 8 }} role="img" aria-label={`${Math.round(c.progress * 100)}% of the way around the world`}>
@@ -122,8 +124,8 @@ export function ShareCard({ c }: { c: ReturnType<typeof cardData> }) {
         <div style={{ position: 'absolute', right: 0, top: 0, width: 8, height: 8, borderRadius: '50%', border: '2px solid var(--paper-ink)' }} />
       </div>
       <div className="otm-kv" style={{ padding: '4px 16px 0' }}>
-        <span className="otm-card-k" style={{ fontSize: 8.5, letterSpacing: '.12em' }}>0 KM</span>
-        <span className="otm-card-k" style={{ fontSize: 8.5, letterSpacing: '.12em' }}>40,075 KM</span>
+        <span className="otm-card-k" style={{ fontSize: 8.5, letterSpacing: '.12em' }}>0 {c.unitText}</span>
+        <span className="otm-card-k" style={{ fontSize: 8.5, letterSpacing: '.12em' }}>{c.circumferenceText} {c.unitText}</span>
       </div>
       <div style={{ display: 'flex', gap: 6, justifyContent: 'center', padding: '16px 16px 18px' }}>
         {c.squares.map((s, i) => (

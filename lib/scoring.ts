@@ -1,5 +1,6 @@
 /* Scoring — ported from design/components/bundle.js (kmFor, tierFor) plus the blend and timing rules in BUILD_SPEC.
    The Postgres function in supabase/migrations mirrors kmFor/tierFor/blendShare; keep the two in sync. */
+import { toUnit, type Unit } from '@/lib/units';
 
 export const MAX_STOP = 5725;
 export const CIRCUMFERENCE = 40075;
@@ -64,11 +65,11 @@ export function isCircumnavigation(stops: StopScore[]): boolean {
   return stops.length === STOPS_PER_FLIGHT && stops.every((s) => s.tier === 'uncharted');
 }
 
-export function shareText(flightNumber: number, stops: StopScore[], domain: string): string {
+export function shareText(flightNumber: number, stops: StopScore[], domain: string, unit: Unit = 'km'): string {
   const total = stops.reduce((a, s) => a + s.km, 0);
   const eyes = stops.filter((s) => s.redEye).length;
   const lines = [
-    `Off the Map #${flightNumber} ✈️ ${fmt(total)} km`,
+    `Off the Map #${flightNumber} ✈️ ${dist(total, unit)} ${unit}`,
     stops.map((s) => TIERS[s.tier].emoji).join(''),
   ];
   if (eyes) lines.push(`${REDEYE.emoji} Red-Eye ×${eyes}`);
@@ -79,6 +80,11 @@ export function shareText(flightNumber: number, stops: StopScore[], domain: stri
 
 export function fmt(n: number): string {
   return Math.round(n).toLocaleString('en-US');
+}
+
+/** "3,557" — a km value shown in the chosen unit. */
+export function dist(km: number, unit: Unit): string {
+  return fmt(toUnit(km, unit));
 }
 
 /** "31%", "6%", "0.4%", "<0.1%" */
